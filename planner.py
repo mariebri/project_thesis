@@ -1,8 +1,9 @@
+import os
 import subprocess
 
 def plan():
     try:
-        pathToExecute = ...
+        pathToExecute = '/home/marie/optic-clp-release/./optic-clp'
         result = subprocess.run([pathToExecute, 'PDDL/domain.pddl', 'PDDL/problem.pddl'], capture_output=True, text=True, timeout=20)
         output = result.stdout
         write_per = "w"
@@ -15,3 +16,6 @@ def plan():
     f = open(planFile, write_per)
     f.write(output)
     f.close()
+
+if __name__ == '__main__':
+    plan()
