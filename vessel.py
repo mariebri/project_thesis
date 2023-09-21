@@ -19,8 +19,8 @@ class Vessel:
                               [0, -0.0041, 0.0308]])
         
         self.J = self.getJ()
-        self.M = self.getM()
-        self.D = self.getD()
+        self.M = self.m*(self.N@self.Mbis@self.N)
+        self.D = self.m*np.sqrt(self.g/self.L)*(self.N@self.Dbis@self.N)
         self.u = u          # u = [f1, f2, f3, alpha1, alpha2]
         self.tau = self.getTau(self.u)
 
@@ -31,14 +31,6 @@ class Vessel:
                       [np.sin(psi),  np.cos(psi), 0],
                       [          0,            0, 1]])
         return J
-    
-    def getM(self):
-        # Inertia matrix
-        return self.m*(self.N@self.Mbis@self.N)
-
-    def getD(self):
-        # Dampening matrix
-        return self.m*np.sqrt(self.g/self.L)*(self.N@self.Dbis@self.N)
 
     def getTau(self, u):
         # Control input vector, tau = T(a)*f
