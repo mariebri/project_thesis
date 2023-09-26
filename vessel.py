@@ -2,13 +2,16 @@ import numpy as np
 
 class Vessel:
 
-    def __init__(self, x, u):
+    def __init__(self, x, u_e):
         self.eta = x[:3]    # [x, y, psi]
         self.nu = x[3:]     # [u, v, r]
 
         self.L = 76.2
         self.g = 9.8
         self.m = 6000e3
+
+        self.lx = np.array([-35, -35, 35])
+        self.ly = np.array([7, -7])
     
         self.N = np.diag([1, 1, self.L])
         self.Mbis = np.array([[1.1274, 0, 0],
@@ -21,8 +24,8 @@ class Vessel:
         self.J = self.getJ()
         self.M = self.m*(self.N@self.Mbis@self.N)
         self.D = self.m*np.sqrt(self.g/self.L)*(self.N@self.Dbis@self.N)
-        self.u = u          # u = [f1, f2, f3, alpha1, alpha2]
-        self.tau = self.getTau(self.u)
+        self.u_e = u_e          # u = [u1x, u1y, u2x, u2y, u3]
+        self.tau = self.getTau(self.u_e)
 
     def getJ(self):
         # Rotation matrix
@@ -32,20 +35,34 @@ class Vessel:
                       [          0,            0, 1]])
         return J
 
-    def getTau(self, u):
-        # Control input vector, tau = T(a)*f
-        # u = [f1, f2, f3, alpha1, alpha2]
-        lx = np.array([-35, -35, 35])
-        ly = np.array([7, -7])
-        alpha = np.array([u[3], u[4], np.pi/2])
-        f = u[:3]
+    def getT_e(self):
+        """
+        Returns the extended thrust configuration matrix
+            T_e = [t1x, t1y, t2x, t2y, t3]
+        where t1, t2 are azimuth thrusters, t3 a tunnel thruster
+        """
+        lx = self.lx
+        ly = self.ly
+        T_e = np.array([[1,          0,      1,     0,     0],
+                        [0,          1,      0,     1,     1],
+                        [-ly[0], lx[0], -ly[1], lx[1], lx[2]]])
+        return T_e
 
-        tau = np.array([f[0]*np.cos(alpha[0]) + f[1]*np.cos(alpha[1]),
-                        f[0]*np.sin(alpha[0]) + f[1]*np.sin(alpha[1]) + f[2],
-                        f[0]*(lx[0]*np.sin(alpha[0]) - ly[0]*np.cos(alpha[0])) + f[1]*(lx[1]*np.sin(alpha[1]) - ly[1]*np.cos(alpha[1])) + f[2]*lx[2]])
+    def getTau(self, u_e):
+        """
+        Returns tau = T_e * u_e
+
+        Based on control allocation:
+            tau = T_e * K_e * u_e
+        with K_e = I
+
+        Input:
+            u_e = [u1x, u1y, u2x, u2y, u3]
+        """
+        tau = self.getT_e() @ u_e
         return tau
     
-    def dynamics(self, u, h):
+    def dynamics(self, u_e, h):
         """
         Returns x = [eta, nu] after a timestep h
 
@@ -54,12 +71,13 @@ class Vessel:
             nu_dot = inv(M)*(-D*nu + tau)
 
         Input:
-            u = [f1, f2, f3, alpha1, alpha2]
+            u_e = [u1x, u1y, u2x, u2y, u3]
             h = timestep
 
         """
 
-        tau = self.getTau(u)
+        tau = self.getTau(u_e)
+        self.u_e = u_e
 
         eta_dot = self.J @ self.nu
         nu_dot = np.linalg.solve(self.M, -self.D @ self.nu + tau)
