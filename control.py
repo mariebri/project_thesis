@@ -1,6 +1,6 @@
 import numpy as np
-#import casadi as ca
 from vessel import Vessel
+import casadi as cd
 
 def PID(vessel: Vessel, eta_d, nu_d, eta_tilde_int):
     
@@ -18,3 +18,59 @@ def controlAllocation(vessel: Vessel, tau):
     T_e = vessel.getT_e()
     u_e = np.reshape(T_e.T @ np.linalg.inv(T_e @ T_e.T) @ tau, 5)    # u_e = [u1x, u1y, u2x, u2y, u3]
     return u_e
+
+def controlAllocationNLP(vessel: Vessel, eta_d, alpha, f):
+    
+    # Decision variables
+    eta = cd.SX.sym("n", 3)
+    nu  = cd.SX.sym("v", 3)
+    f   = cd.SX.sym("f", 3)
+    a   = cd.SX.sym("a", 2)
+    x   = cd.vertcat(eta, nu, f, a)
+
+    # Parameters
+    p       = 10
+    eps     = 0.001
+    W       = np.eye(3)
+    T       = vessel.getT(alpha)
+    eta_dot = vessel.J @ vessel.nu
+    nu_dot  = np.linalg.solve(vessel.M, -vessel.D @ vessel.nu + T @ f)
+
+
+    # Objective function
+    f = cd.fabs(eta-eta_d) + cd.fabs(nu) + cd.fabs(f) + p/(eps + np.linalg.det(T@np.linalg.inv(W)@T.T))
+
+    # Nonlinear constraints
+    g = cd.vertcat(( \
+        eta_dot - vessel.J @ nu,
+        vessel.M @ nu_dot + vessel.D @ nu - T @ f
+    ))
+
+    # Nonlinear bounds
+    lbg = [0, 0, 0, 0, 0, 0]
+    ubg = [0, 0, 0, 0, 0, 0]
+
+    # Input bounds for optimization variables
+    lbx = [-cd.inf, -cd.inf, -np.pi, -cd.inf, -cd.inf, -cd.inf, -cd.inf, -cd.inf, -cd.inf, -vessel.alphamax, -vessel.alphamax]
+    ubx = [cd.inf, cd.inf, np.pi, cd.inf, cd.inf, cd.inf, cd.inf, cd.inf, cd.inf, vessel.alphamax, vessel.alphamax]
+
+    # Initial guess for decision variables
+    eta0    = [0, 0, 0]
+    nu0     = [0, 0, 0]
+    f0      = [0, 0, 0]
+    a0      = [0, 0]
+    x0      = np.concatenate((eta0, nu0, f0, a0))
+
+    # Create NLP solver
+    nlp    = cd.SXFunction(cd.nlpIn(x=x), cd.nlpOut(f=f, g=g))
+    solver = cd.NlpSolver("ipopt", nlp)
+    solver.init()
+
+    # Pass bounds and initial values
+    solver.setInput( x0, "x0")
+    solver.setInput(lbx, "lbx")
+    solver.setInput(ubx, "ubx")
+    solver.setInput(lbg, "lbg")
+    solver.setInput(ubg, "ubg")
+
+    solver.evaluate()

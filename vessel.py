@@ -25,7 +25,12 @@ class Vessel:
         self.M = self.m*(self.N@self.Mbis@self.N)
         self.D = self.m*np.sqrt(self.g/self.L)*(self.N@self.Dbis@self.N)
         self.u_e = u_e          # u = [u1x, u1y, u2x, u2y, u3]
-        self.tau = self.getTau(self.u_e)
+        self.tau = self.getTau_e(self.u_e)
+
+        self.Tmax_azimuth = (1/30)*self.m
+        self.Tmax_tunnel = (1/60)*self.m    # +/-
+        self.alphamax = 170*(np.pi/180)     # 170 degrees, +/-
+        self.alphamax_rate = 30
 
     def getJ(self):
         # Rotation matrix
@@ -35,6 +40,23 @@ class Vessel:
                       [          0,            0, 1]])
         return J
 
+    def getT(self, alpha):
+        """
+        Returns the thrust configuration matrix
+            T(a) = [T1, T2, T3]
+        where T1, T2 are azimuth thrusters, T3 a tunnels thruster
+
+        Input: alpha = [alpha1, alpha2]
+        """
+        a1 = alpha[0]
+        a2 = alpha[1]
+        lx = self.lx
+        ly = self.ly
+        T = np.array([[                         np.cos(a1),                          np.cos(a2),     0],
+                      [                         np.sin(a1),                          np.sin(a2),     1],
+                      [lx[0]*np.sin(a1) - ly[0]*np.cos(a1), lx[1]*np.sin(a2) - ly[1]*np.cos(a2), lx[2]] ])
+        return T
+        
     def getT_e(self):
         """
         Returns the extended thrust configuration matrix
@@ -48,7 +70,7 @@ class Vessel:
                         [-ly[0], lx[0], -ly[1], lx[1], lx[2]]])
         return T_e
 
-    def getTau(self, u_e):
+    def getTau_e(self, u_e):
         """
         Returns tau = T_e * u_e
 
@@ -62,6 +84,29 @@ class Vessel:
         tau = self.getT_e() @ u_e
         return tau
     
+    def getTau(self, alpha, f):
+        """
+        Returns tau = T(a) * f
+
+        Input:
+            alpha = [alpha1, alpha2]
+            f     = [f1, f2, f3]
+        """
+        T = self.getT(alpha)
+        tau = T @ f
+
+        # Saturation
+        if abs(tau[0]) > self.Tmax_azimuth:
+            tau[0] = np.sign(tau[0]) * self.Tmax_azimuth
+
+        if abs(tau[1]) > self.Tmax_azimuth:
+            tau[1] = np.sign(tau[1]) * self.Tmax_azimuth
+
+        if abs(tau[2]) > self.Tmax_tunnel:
+            tau[2] = np.sign(tau[2]) * self.Tmax_tunnel
+
+        return tau
+
     def dynamics(self, u_e, h):
         """
         Returns x = [eta, nu] after a timestep h

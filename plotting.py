@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def load_map():
-    img = plt.imread('./map.png')
+    img = plt.imread('./Map/map.png')
     plt.imshow(img)
 
 def plot(waypoints, trajectory):

@@ -7,11 +7,11 @@ def main():
 
     # Simulation parameters
     sampleTime  = 0.02          # sample time [seconds]
-    N           = 10000         # number of samples
+    N           = 20000         # number of samples
 
     # Initial states
     x = np.array([100, 100, 0.1, 1, 0, 0])
-    u_e = np.array([5, 5, 5, -np.pi, np.pi/2])
+    u_e = np.array([5, 5, 5, 5, 5])
     vessel = Vessel(x, u_e)
 
     # Desired state
