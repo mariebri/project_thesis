@@ -1,6 +1,21 @@
 import numpy as np
 from vessel import Vessel
-import casadi as cd
+#import casadi as cd
+
+def speedController(vessel: Vessel, eta_d):
+    delta_x = eta_d[0] - vessel.eta[0]
+    delta_y = eta_d[1] - vessel.eta[1]
+    alpha   = np.arctan2(delta_y, delta_x)
+
+    dist = np.linalg.norm(vessel.eta - eta_d)
+    if dist > 500:
+        f1, f2, f3 = vessel.Tmax_azimuth, vessel.Tmax_azimuth, vessel.Tmax_tunnel
+    else:
+        f1, f2 = vessel.Tmax_azimuth*dist/500, vessel.Tmax_azimuth*dist/500
+        f3 = vessel.Tmax_tunnel *dist/500
+    
+    u_e = np.array([f1*np.cos(alpha), f1*np.sin(alpha), f2*np.cos(alpha), f2*np.sin(alpha), f3])
+    return u_e
 
 def PID(vessel: Vessel, eta_d, nu_d, eta_tilde_int):
     
@@ -19,6 +34,7 @@ def controlAllocation(vessel: Vessel, tau):
     u_e = np.reshape(T_e.T @ np.linalg.inv(T_e @ T_e.T) @ tau, 5)    # u_e = [u1x, u1y, u2x, u2y, u3]
     return u_e
 
+"""
 def controlAllocationNLP(vessel: Vessel, eta_d, alpha, f):
     
     # Decision variables
@@ -74,3 +90,4 @@ def controlAllocationNLP(vessel: Vessel, eta_d, alpha, f):
     solver.setInput(ubg, "ubg")
 
     solver.evaluate()
+"""

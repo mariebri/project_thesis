@@ -69,20 +69,6 @@ class Vessel:
                         [0,          1,      0,     1,     1],
                         [-ly[0], lx[0], -ly[1], lx[1], lx[2]]])
         return T_e
-
-    def getTau_e(self, u_e):
-        """
-        Returns tau = T_e * u_e
-
-        Based on control allocation:
-            tau = T_e * K_e * u_e
-        with K_e = I
-
-        Input:
-            u_e = [u1x, u1y, u2x, u2y, u3]
-        """
-        tau = self.getT_e() @ u_e
-        return tau
     
     def getTau(self, alpha, f):
         """
@@ -107,6 +93,20 @@ class Vessel:
 
         return tau
 
+    def getTau_e(self, u_e):
+        """
+        Returns tau = T_e * u_e
+
+        Based on control allocation:
+            tau = T_e * K_e * u_e
+        with K_e = I
+
+        Input:
+            u_e = [u1x, u1y, u2x, u2y, u3]
+        """
+        tau = self.getT_e() @ u_e
+        return tau
+
     def dynamics(self, u_e, h):
         """
         Returns x = [eta, nu] after a timestep h
@@ -121,7 +121,7 @@ class Vessel:
 
         """
 
-        tau = self.getTau(u_e)
+        tau = self.getTau_e(u_e)
         self.u_e = u_e
 
         eta_dot = self.J @ self.nu

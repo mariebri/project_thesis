@@ -6,16 +6,16 @@ from control import *
 def main():
 
     # Simulation parameters
-    sampleTime  = 0.02          # sample time [seconds]
-    N           = 20000         # number of samples
+    sampleTime  = 0.01          # sample time [seconds]
+    N           = 100000         # number of samples
 
     # Initial states
-    x = np.array([100, 100, 0.1, 1, 0, 0])
+    x = np.array([100, 100, 0.0, 0, 0, 0])
     u_e = np.array([5, 5, 5, 5, 5])
     vessel = Vessel(x, u_e)
 
     # Desired state
-    eta_d = np.array([150, 150, 0])
+    eta_d = np.array([150, 150, np.pi/2])
     nu_d = np.zeros(3)
     eta_tilde_int = np.zeros(3)
 
@@ -23,10 +23,12 @@ def main():
     simData = np.zeros((6, N))
     for i in range(N):
 
-        # Controller
+        """ Controller
         tau, eta_tilde = PID(vessel, eta_d, nu_d, eta_tilde_int)
         eta_tilde_int += sampleTime*eta_tilde
         u_e = controlAllocation(vessel, tau)
+        """
+        u_e = speedController(vessel, eta_d)       # np.array([150, 150, 50, 50, 50])
 
         x = vessel.dynamics(u_e, sampleTime)
         simData[:,i] = x
