@@ -10,12 +10,12 @@ def main():
     N           = 100000         # number of samples
 
     # Initial states
-    x = np.array([100, 100, 0.0, 0, 0, 0])
-    u_e = np.array([5, 5, 5, 5, 5])
+    x = np.array([100, 100, np.pi/8, 0, 0, 0])
+    u_e = np.array([0, 0, 0, 0, 0])
     vessel = Vessel(x, u_e)
 
     # Desired state
-    eta_d = np.array([150, 150, np.pi/2])
+    eta_d = np.array([200, 250, np.pi/2])
     nu_d = np.zeros(3)
     eta_tilde_int = np.zeros(3)
 
@@ -28,13 +28,13 @@ def main():
         eta_tilde_int += sampleTime*eta_tilde
         u_e = controlAllocation(vessel, tau)
         """
-        u_e = speedController(vessel, eta_d)       # np.array([150, 150, 50, 50, 50])
+        u_e = speedController(vessel, eta_d)
 
         x = vessel.dynamics(u_e, sampleTime)
         simData[:,i] = x
 
     # Plotting
-    waypoints = np.array([[100,150], [100,150]])
+    waypoints = np.array([[100,200], [100,250]])
     trajectory = np.array([simData[0,:], simData[1,:]])
     plot(waypoints, trajectory)
 
