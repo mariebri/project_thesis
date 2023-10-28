@@ -19,5 +19,5 @@
         (at vessel0 portE) (goodsAt goodsAB portB) (goodsAt goodsCE portE)
     ))
 
-    (:metric minimize (totalTime))
+    (:metric minimize (total-time))
 )
