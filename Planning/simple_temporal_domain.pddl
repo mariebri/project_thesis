@@ -10,6 +10,7 @@
         (vesselAt ?v - vessel ?p - port)
         (goodsAt ?g - goods ?p - port)
         (onboard ?g - goods ?v - vessel)
+        (isDocked ?v - vessel)
     )
 
     (:functions
@@ -35,6 +36,7 @@
         :condition (and
         	(at start (goodsAt ?g ?p))
         	(over all (vesselAt ?v ?p))
+            (over all (isDocked ?v))
         )
         :effect (and 
         	(at end (not (goodsAt ?g ?p)))
@@ -48,6 +50,7 @@
         :condition (and
         	(at start (onboard ?g ?v))
         	(over all (vesselAt ?v ?p))
+            (over all (isDocked ?v))
         )
         :effect (and
         	(at end (not (onboard ?g ?v)))
