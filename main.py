@@ -2,6 +2,8 @@ import numpy as np
 from vessel import Vessel
 from plotting import plot
 from control import *
+from planner import *
+from plan_executor import *
 
 def main():
 
@@ -43,4 +45,12 @@ def main():
     print('Desired final position: ', eta_d)
 
 
-main()
+def mainPlanner():
+    plan    = computePlan(planner="temporal")
+    executePlan(plan)
+
+
+
+if __name__ == '__main__':
+    # main()
+    mainPlanner()

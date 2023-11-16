@@ -3,17 +3,26 @@ import subprocess
 import pyplanning as pp
 
 class Action:
-    def __init__(self, action, predicates, start=float('nan'), end=float('nan')):
+    def __init__(self, action, predicates, start=0.0, end=0.0):
         self.action = action
         self.predicates = predicates
-        self.start = start
-        self.end = end
+        self.start = float(start)
+        self.end = float(end)
 
     def getAction(self):
         return self.action
     
     def getPredicates(self):
         return self.predicates
+    
+    def getStartTime(self):
+        return self.start
+    
+    def getEndTime(self):
+        return self.end
+    
+    def getDuration(self):
+        return self.end - self.start
 
 class Plan:
     def __init__(self, actions):
@@ -56,7 +65,7 @@ def makePlanFromFile(planFile, planner):
     plan.printPlan()
     return plan
 
-def plan(planner="temporal"):
+def computePlan(planner="temporal"):
     if planner == "temporal":
         try:
             domain_file     = "/home/marie/project_thesis/Planning/temporal_domain.pddl"
@@ -95,4 +104,4 @@ def plan(planner="temporal"):
 
 
 if __name__ == '__main__':
-    plan = plan(planner="graphplan")
+    plan = computePlan(planner="temporal")
