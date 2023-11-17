@@ -1,67 +1,105 @@
-### This module takes in a plan, and says which actions to perform
-from planner import Plan, Action
+from planner import Action, PlannerType
+from vessel_state import VesselState, State
 import time
+from replanner import *
+
+class PlanExecutor():
+
+    def __init__(self, vessel: VesselState, plannerType: PlannerType):
+        self.vessel = vessel
+        self.plannerType = plannerType
+
+    def executePlan(self):
+        actions = self.vessel.allActions
+        for a in actions:
+            self.executeAction(a)
+            self.vessel.updateActions(a)
+            self.vessel.updatePredEnd(a)
+
+    def executeAction(self, a: Action):
+        action  = a.getAction()
+        pred    = a.getPredicates()
+        start   = a.getStartTime()
+        end     = a.getEndTime()
+        dur     = a.getDuration()
+
+        if action == "transit":
+            self.vessel.updateState(State.IN_TRANSIT)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            portFrom    = pred[0]
+            portTo      = pred[1]
+            print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+            ### Testing replanning at this step -- TEST FOR GRAPHPLAN
+            #fileName = '/home/marie/project_thesis/Planning/replan_problem.pddl'
+            #makeProblemFile(self.vessel, fileName, plannerType=self.plannerType)
+
+        elif action == "undock":
+            self.vessel.updateState(State.UNDOCKING)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Undocking at %s\n" % (start, port))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+        elif action == "dock":
+            self.vessel.updateState(State.DOCKING)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Docking at %s\n" % (start, port))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+        elif action == "load":
+            self.vessel.updateState(State.DOCKED)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            port = pred[0]
+            goods = pred[1]
+            print("At %f\n Loading %s at %s\n" % (start, goods, port))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+        elif action == "unload":
+            self.vessel.updateState(State.DOCKED)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            port = pred[0]
+            goods = pred[1]
+            print("At %f\n Unloading %s at %s\n" % (start, goods, port))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+        elif action == "fuelling":
+            self.vessel.updateState(State.DOCKED)
+            if self.plannerType == PlannerType.TEMPORAL:
+                self.vessel.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Fuelling at %s\n" % (start, port))
+            time.sleep(2)
+
+            print("Vessel in state %s\n" % self.vessel.state)
+
+            ### Testing replanning at this step
+            fileName = '/home/marie/project_thesis/Planning/replan_problem.pddl'
+            makeProblemFile(self.vessel, fileName, plannerType=self.plannerType)
 
 
-def executePlan(plan: Plan):
-    actions = plan.actions
-
-    for a in actions:
-        executeAction(a)
-
-
-def executeAction(a: Action):
-    action  = a.getAction()
-    pred    = a.getPredicates()
-    start   = a.getStartTime()
-    end     = a.getEndTime()
-    dur     = a.getDuration()
-
-    if action == "transit":
-        # Transit - port_from; port_to; vessel
-        portFrom    = pred[0]
-        portTo      = pred[1]
-        print("At %f" % start)
-        print("Transit from %s to %s\n" % (portFrom, portTo))
-        time.sleep(2)
-
-    elif action == "undock":
-        # Undock - port; vessel
-        port = pred[0]
-        print("At %f" % start)
-        print("Undocking at %s\n" % port)
-        time.sleep(2)
-
-    elif action == "dock":
-        # Dock - port; vessel
-        port = pred[0]
-        print("At %f" % start)
-        print("Docking at %s\n" % port)
-        time.sleep(2)
-
-    elif action == "load":
-        # Load - port; goods; vessel
-        # Do nothing, be stationary for the duration
-        port = pred[0]
-        goods = pred[1]
-        print("At %f" % start)
-        print("Loading %s at %s\n" % (goods, port))
-        time.sleep(2)
-
-    elif action == "unload":
-        # Unload - port; goods; vessel
-        port = pred[0]
-        goods = pred[1]
-        print("At %f" % start)
-        print("Unloading %s at %s\n" % (goods, port))
-        time.sleep(2)
-
-    elif action == "fuelling":
-        # Fuelling - port; vessel
-        port = pred[0]
-        print("At %f" % start)
-        print("Fuelling at %s\n" % port)
-        time.sleep(2)
-
-    else:
-        raise Exception("Not a valid action name")
+        else:
+            raise Exception("Not a valid action name")

@@ -7,13 +7,13 @@
     )
 
     (:predicates
-        (vesselAt ?v - vessel ?p - port)
-        (goodsAt ?g - goods ?p - port)
-        (fuelAt ?p - port)
+        (vesselat ?v - vessel ?p - port)
+        (goodsat ?g - goods ?p - port)
+        (fuelat ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
-        (isDocked ?v - vessel)
-        (hasFueled ?v - vessel)
+        (isdocked ?v - vessel)
+        (hasfueled ?v - vessel)
     )
 
     (:functions
@@ -25,15 +25,13 @@
         :parameters (?from ?to - port ?v - vessel)
         :duration (= ?duration (/ (length ?from ?to) (speed ?v)))
         :condition (and
-        	(at start (vesselAt ?v ?from))
+        	(at start (vesselat ?v ?from))
         	(over all (path ?from ?to))
-            (over all (not (isDocked ?v)))
-            ; (at start (> (battery ?v) 25))
+            (over all (not (isdocked ?v)))
         )
         :effect (and
-        	(at end (vesselAt ?v ?to))
-        	(at start (not (vesselAt ?v ?from)))
-            ; (at end (- (battery ?v) 20))
+        	(at end (vesselat ?v ?to))
+        	(at start (not (vesselat ?v ?from)))
         )
     )
 
@@ -41,11 +39,11 @@
         :parameters (?p - port ?v - vessel)
         :duration (= ?duration 10)
         :condition (and
-            (at start (isDocked ?v))
-            (over all (vesselAt ?v ?p))
+            (at start (isdocked ?v))
+            (over all (vesselat ?v ?p))
         )
         :effect (and
-            (at end (not (isDocked ?v)))
+            (at end (not (isdocked ?v)))
         )
     )
 
@@ -53,11 +51,11 @@
         :parameters (?p - port ?v - vessel)
         :duration (= ?duration 10)
         :condition (and
-            (at start ( not (isDocked ?v)))
-            (over all (vesselAt ?v ?p))
+            (at start ( not (isdocked ?v)))
+            (over all (vesselat ?v ?p))
         )
         :effect (and
-            (at end (isDocked ?v))
+            (at end (isdocked ?v))
         )
     )
 
@@ -65,12 +63,12 @@
         :parameters (?p - port ?g - goods ?v - vessel)
         :duration (= ?duration 60)
         :condition (and
-        	(at start (goodsAt ?g ?p))
-        	(over all (vesselAt ?v ?p))
-            (over all (isDocked ?v))
+        	(at start (goodsat ?g ?p))
+        	(over all (vesselat ?v ?p))
+            (over all (isdocked ?v))
         )
         :effect (and 
-        	(at start (not (goodsAt ?g ?p)))
+        	(at start (not (goodsat ?g ?p)))
         	(at end (onboard ?g ?v))
         )
     )
@@ -80,12 +78,12 @@
         :duration (= ?duration 50)
         :condition (and
         	(at start (onboard ?g ?v))
-        	(over all (vesselAt ?v ?p))
-            (over all (isDocked ?v))
+        	(over all (vesselat ?v ?p))
+            (over all (isdocked ?v))
         )
         :effect (and
         	(at start (not (onboard ?g ?v)))
-        	(at end (goodsAt ?g ?p))
+        	(at end (goodsat ?g ?p))
         )
     )
 
@@ -93,13 +91,13 @@
         :parameters (?p - port ?v - vessel)
         :duration (= ?duration 50)
         :condition (and
-            (at start (fuelAt ?p))
-            (at start (not (hasFueled ?v)))
-            (over all (vesselAt ?v ?p))
-            (over all (isDocked ?v))
+            (at start (fuelat ?p))
+            (at start (not (hasfueled ?v)))
+            (over all (vesselat ?v ?p))
+            (over all (isdocked ?v))
         )
         :effect (and
-            (at end (hasFueled ?v))
+            (at end (hasfueled ?v))
         )
     )
 

@@ -1,24 +1,35 @@
 (define (problem temporal) (:domain temporal)
     (:objects
         vessel0 - vessel
-        portA portB portC portD portE - port
-        goodsAB goodsCE goodsCD - goods
+        porta portb portc portd porte - port
+        goodsab goodsce goodscd - goods
     )
 
     (:init
-        (vesselAt vessel0 portA) (isDocked vessel0)
-        (path portA portB) (path portB portC) (path portC portD) (path portD portE)
-        (goodsAt goodsAB portA) (goodsAt goodsCE portC) (goodsAt goodsCD portC) (fuelAt portC)
-        (= (length portA portB) 5000)   ; m
-        (= (length portB portC) 2500)   ; m
-        (= (length portC portD) 3000)   ; m
-        (= (length portD portE) 1500)   ; m
+        (vesselat vessel0 porta)
+        (isdocked vessel0)
+        (path porta portb)
+        (path portb portc)
+        (path portc portd)
+        (path portd porte)
+        (goodsat goodsab porta)
+        (goodsat goodsce portc)
+        (goodsat goodscd portc)
+        (fuelat portc)
+        (= (length porta portb) 5000)   ; m
+        (= (length portb portc) 2500)   ; m
+        (= (length portc portd) 3000)   ; m
+        (= (length portd porte) 1500)   ; m
         (= (speed vessel0) 3)           ; m/s (approx 6 knots)
     )
 
     (:goal (and
-        (vesselAt vessel0 portE) (isDocked vessel0) (hasFueled vessel0)
-        (goodsAt goodsAB portB) (goodsAt goodsCE portE) (goodsAt goodsCD portD)
+        (vesselat vessel0 porte)
+        (isdocked vessel0)
+        (hasfueled vessel0)
+        (goodsat goodsab portb)
+        (goodsat goodsce porte)
+        (goodsat goodscd portd)
     ))
 
     (:metric minimize (total-time))

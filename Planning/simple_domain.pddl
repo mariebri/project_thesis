@@ -1,4 +1,4 @@
-(define (domain simple_graphplan)
+(define (domain graphplan)
     (:requirements :typing :strips)
     (:types
         vessel
@@ -7,27 +7,36 @@
     )
 
     (:predicates
-        (at ?v - vessel ?p - port)
-        (goodsAt ?g - goods ?p - port)
+        (vesselat ?v - vessel ?p - port)
+        (goodsat ?g - goods ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
     )
 
-    (:action move
+    (:action transit
         :parameters (?from - port ?to - port ?v - vessel)
-        :precondition (and (path ?from ?to) (at ?v ?from))
-        :effect (and (at ?v ?to) (not (at ?v ?from)))
+        :precondition (and (path ?from ?to) (vesselat ?v ?from))
+        :effect (and
+            (vesselat ?v ?to)
+            (not (vesselat ?v ?from))
+        )
     )
 
     (:action load
         :parameters (?p - port ?g - goods ?v - vessel)
-        :precondition (and (goodsAt ?g ?p) (at ?v ?p))
-        :effect (and (not (goodsAt ?g ?p)) (onboard ?g ?v))
+        :precondition (and (goodsat ?g ?p) (vesselat ?v ?p))
+        :effect (and
+            (not (goodsat ?g ?p))
+            (onboard ?g ?v)
+        )
     )
 
     (:action unload
         :parameters (?p - port ?g - goods ?v - vessel)
-        :precondition (and (onboard ?g ?v) (at ?v ?p))
-        :effect (and (not (onboard ?g ?v)) (goodsAt ?g ?p))
+        :precondition (and (onboard ?g ?v) (vesselat ?v ?p))
+        :effect (and
+            (not (onboard ?g ?v))
+            (goodsat ?g ?p)
+        )
     )
 )

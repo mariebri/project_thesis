@@ -1,17 +1,23 @@
-(define (problem simple) (:domain simple_graphplan)
+(define (problem simple) (:domain graphplan)
     (:objects
         vessel0 - vessel
-        portA portB portC portD portE - port
-        goodsAB goodsCE - goods
+        porta portb portc portd porte - port
+        goodsab goodsce goodscd - goods
     )
 
     (:init
-        (at vessel0 portA)
-        (path portA portB) (path portB portC) (path portC portD) (path portD portE)
-        (goodsAt goodsAB portA) (goodsAt goodsCE portC)
+        (vesselat vessel0 porta)
+        (path porta portb)
+        (path portb portc)
+        (path portc portd)
+        (path portd porte)
+        (goodsat goodsab porta)
+        (goodsat goodsce portc)
     )
 
     (:goal (and
-        (at vessel0 portE) (goodsAt goodsAB portB) (goodsAt goodsCE portE)
+        (vesselat vessel0 porte)
+        (goodsat goodsab portb)
+        (goodsat goodsce porte)
     ))
 )
