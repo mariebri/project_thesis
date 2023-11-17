@@ -1,5 +1,5 @@
 import numpy as np
-from vessel import Vessel
+from old_code.vessel import Vessel
 #import casadi as cd
 
 def speedController(vessel: Vessel, eta_d):

@@ -28,6 +28,9 @@ class Plan:
     def __init__(self, actions):
         self.actions = actions
 
+    def getActions(self):
+        return self.actions
+
     def printPlan(self):
         i = 1
         for a in self.actions:

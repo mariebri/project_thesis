@@ -133,10 +133,3 @@ class Vessel:
         x = np.concatenate((self.eta, self.nu))
 
         return x
-
-
-
-
-
-
-

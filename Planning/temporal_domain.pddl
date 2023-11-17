@@ -45,7 +45,7 @@
             (over all (vesselAt ?v ?p))
         )
         :effect (and
-            (at start (not (isDocked ?v)))
+            (at end (not (isDocked ?v)))
         )
     )
 
