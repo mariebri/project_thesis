@@ -70,7 +70,24 @@ class Plan:
             except subprocess.TimeoutExpired as timeErr:
                 print("Process timeout")
 
-            planFile = "/home/marie/temporal-planning-test/temporal-planning/tmp_sas_plan.2"
+            # Choosing the plan file with the lowest total time
+            planFile1 = "/home/marie/temporal-planning-test/temporal-planning/tmp_sas_plan.1"
+            planFile2 = "/home/marie/temporal-planning-test/temporal-planning/tmp_sas_plan.2"
+            f1 = open(planFile1, "r")
+            f2 = open(planFile2, "r")
+            time1 = float((f1.readlines()[-1]).split(':')[0])
+            time2 = float((f2.readlines()[-1]).split(':')[0])
+            f1.close(), f2.close()
+
+            if time1 < time2:
+                planFile = planFile1
+                print("Using planFile no. 1")
+            else:
+                planFile = planFile2
+                print("Using planFile no. 2")
+
+            
+
 
         elif self.planner == PlannerType.GRAPHPLAN:
             domain, problem = pp.load_pddl(self.domainFile, self.problemFile)

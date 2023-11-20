@@ -6,7 +6,7 @@ from utils import getDomainProblemFiles
 def mainPlanner():
     # Specify the planner type, domain and problem files, and the algorithm
     plannerType = PlannerType.TEMPORAL
-    replan      = True
+    replan      = False
     algorithm   = "stp-3"
     domainFile, problemFile = getDomainProblemFiles(plannerType, replan)
 
