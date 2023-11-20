@@ -3,11 +3,13 @@
         vessel0 - vessel
         porta portb portc portd porte - port
         goodsab goodsce goodscd - goods
+        tank0 - tank
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
+        (empty tank0)
         (path porta portb)
         (path portb portc)
         (path portc portd)
@@ -26,10 +28,10 @@
     (:goal (and
         (vesselat vessel0 porte)
         (isdocked vessel0)
-        (hasfueled vessel0)
         (goodsat goodsab portb)
         (goodsat goodsce porte)
         (goodsat goodscd portd)
+        (full tank0)
     ))
 
     (:metric minimize (total-time))

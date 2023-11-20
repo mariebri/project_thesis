@@ -1,6 +1,7 @@
 # This module is responsible for replanning, i.e. making new problem files
 from vessel_state import VesselState
 from planner import PlannerType
+from utils import getDomainProblemFiles
 
 
 def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
@@ -8,20 +9,29 @@ def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
     goalState   = vessel.goalPred
     
     # Open a file for writing
-    f = open(fileName, "w")
+    f   = open(fileName, "w")
+
+    # Open the original problem file
+    _, problemFile = getDomainProblemFiles(plannerType)
+    fPF = open(problemFile, "r")
 
     if plannerType == PlannerType.TEMPORAL:
         domain = "temporal"
     else:
         domain = "graphplan"
 
-    firstLines  = ["(define (problem replan) (:domain " + domain + ")\n",
-                  "    (:objects\n",
-                  "        vessel0 - vessel\n",
-                  "        porta portb portc portd porte - port\n",
-                  "        goodsab goodsce goodscd - goods\n",
-                  "    )\n",
-                  "\n"]
+    firstLine  = ["(define (problem replan) (:domain " + domain + ")\n"]
+
+    pfLines = fPF.readlines()
+    for i in range(len(pfLines)):
+        if ":objects" in pfLines[i]:
+            objStartIdx = i
+            for j in range(i+1, len(pfLines)):
+                if ")" in pfLines[j]:
+                    objEndIdx = j
+                    break
+
+    objectLines = pfLines[objStartIdx:objEndIdx+1] + ["\n"]
     
     initLines   = ["    (:init\n"]
     for state in initState:
@@ -43,7 +53,7 @@ def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
     else:
         endLines = [")\n"]
 
-    lines = firstLines + initLines + goalLines + endLines
+    lines = firstLine + objectLines + initLines + goalLines + endLines
 
     for line in lines:
         f.write(line)

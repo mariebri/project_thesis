@@ -1,20 +1,14 @@
 from planner import *
 from plan_executor import PlanExecutor
 from vessel_state import VesselState
-
+from utils import getDomainProblemFiles
 
 def mainPlanner():
     # Specify the planner type, domain and problem files, and the algorithm
     plannerType = PlannerType.TEMPORAL
-    algorithm   = "stp-2"
-
-    if plannerType == PlannerType.TEMPORAL:
-        domainFile  = "/home/marie/project_thesis/Planning/temporal_domain.pddl"
-        problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"
-    elif plannerType == PlannerType.GRAPHPLAN:
-        domainFile  = "/home/marie/project_thesis/Planning/simple_domain.pddl"
-        problemFile = "/home/marie/project_thesis/Planning/simple_problem.pddl"
-
+    replan      = True
+    algorithm   = "stp-3"
+    domainFile, problemFile = getDomainProblemFiles(plannerType, replan)
 
     # Computing a plan, retrieving a list of the actions
     plan    = Plan(domainFile, problemFile, plannerType, algorithm)

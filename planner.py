@@ -70,7 +70,7 @@ class Plan:
             except subprocess.TimeoutExpired as timeErr:
                 print("Process timeout")
 
-            planFile = "/home/marie/temporal-planning-test/temporal-planning/tmp_sas_plan.1"
+            planFile = "/home/marie/temporal-planning-test/temporal-planning/tmp_sas_plan.2"
 
         elif self.planner == PlannerType.GRAPHPLAN:
             domain, problem = pp.load_pddl(self.domainFile, self.problemFile)
