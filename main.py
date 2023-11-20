@@ -6,13 +6,14 @@ from vessel_state import VesselState
 def mainPlanner():
     # Specify the planner type, domain and problem files, and the algorithm
     plannerType = PlannerType.TEMPORAL
-    domainFile  = "/home/marie/project_thesis/Planning/temporal_domain.pddl"
-    problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"
     algorithm   = "stp-2"
 
-    #plannerType = PlannerType.GRAPHPLAN
-    #domainFile  = "/home/marie/project_thesis/Planning/simple_domain.pddl"
-    #problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"
+    if plannerType == PlannerType.TEMPORAL:
+        domainFile  = "/home/marie/project_thesis/Planning/temporal_domain.pddl"
+        problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"
+    elif plannerType == PlannerType.GRAPHPLAN:
+        domainFile  = "/home/marie/project_thesis/Planning/simple_domain.pddl"
+        problemFile = "/home/marie/project_thesis/Planning/simple_problem.pddl"
 
 
     # Computing a plan, retrieving a list of the actions

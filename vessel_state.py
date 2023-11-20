@@ -24,11 +24,6 @@ class VesselState:
         addEffects = addEffects[0]
         delEffects = delEffects[0]
 
-        print('\n AT START:')
-        print('Add effects: ', addEffects)
-        print('Del effects: ', delEffects)
-        print('')
-
         # Update
         effInPred = [False for i in range(len(addEffects))]
         for pred in self.initPred:
@@ -47,11 +42,6 @@ class VesselState:
             for eff in addEffects:
                 if pred == eff:
                     self.goalPred.remove(pred)
-
-        print('Initial: ')
-        print(self.initPred)
-        print('Goal: ')
-        print(self.goalPred)
 
     def updatePredEnd(self, finishedAction):
         addEffects, delEffects = finishedAction.getEffects()
@@ -60,11 +50,6 @@ class VesselState:
             addEffects = addEffects[1]
             delEffects = delEffects[1]
 
-        print('\n AT END:')
-        print('Add effects: ', addEffects)
-        print('Del effects: ', delEffects)
-        print('')
-
         # Update
         effInPred = [False for i in range(len(addEffects))]
         for pred in self.initPred:
@@ -83,11 +68,6 @@ class VesselState:
             for eff in addEffects:
                 if pred == eff:
                     self.goalPred.remove(pred)
-
-        print('Initial: ')
-        print(self.initPred)
-        print('Goal: ')
-        print(self.goalPred)
 
     def updateState(self, state):
         self.state = state

@@ -16,30 +16,30 @@ def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
         domain = "graphplan"
 
     firstLines  = ["(define (problem replan) (:domain " + domain + ")\n",
-                  "\t(:objects\n",
-                  "\t\tvessel0 - vessel\n",
-                  "\t\tporta portb portc portd porte - port\n",
-                  "\t\tgoodsab goodsce goodscd - goods\n",
-                  "\t)\n",
+                  "    (:objects\n",
+                  "        vessel0 - vessel\n",
+                  "        porta portb portc portd porte - port\n",
+                  "        goodsab goodsce goodscd - goods\n",
+                  "    )\n",
                   "\n"]
     
-    initLines   = ["\t(:init\n"]
+    initLines   = ["    (:init\n"]
     for state in initState:
         if "=" not in state:
-            initLines.append("\t\t(" + state + ")\n")
+            initLines.append("        (" + state + ")\n")
         else:
-            initLines.append("\t\t" + state + "\n")
-    initLines.append("\t)\n")
+            initLines.append("        " + state + "\n")
+    initLines.append("    )\n")
     initLines.append("\n")
 
-    goalLines   = ["\t(:goal (and\n"]
+    goalLines   = ["    (:goal (and\n"]
     for state in goalState:
-        goalLines.append("\t\t(" + state + ")\n")
-    goalLines.append("\t))\n")
+        goalLines.append("        (" + state + ")\n")
+    goalLines.append("    ))\n")
     goalLines.append("\n")
 
     if plannerType == PlannerType.TEMPORAL:
-        endLines = ["\t(:metric minimize (total-time))\n", ")\n"]
+        endLines = ["    (:metric minimize (total-time))\n", ")\n"]
     else:
         endLines = [")\n"]
 

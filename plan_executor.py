@@ -46,7 +46,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Undocking at %s\n" % (start, port))
-            time.sleep(2)
+            time.sleep(1)
 
             print("Vessel in state %s\n" % self.vessel.state)
 
@@ -57,7 +57,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Docking at %s\n" % (start, port))
-            time.sleep(2)
+            time.sleep(1)
 
             print("Vessel in state %s\n" % self.vessel.state)
 
@@ -69,7 +69,7 @@ class PlanExecutor():
             port = pred[0]
             goods = pred[1]
             print("At %f\n Loading %s at %s\n" % (start, goods, port))
-            time.sleep(2)
+            time.sleep(1)
 
             print("Vessel in state %s\n" % self.vessel.state)
 
@@ -81,7 +81,7 @@ class PlanExecutor():
             port = pred[0]
             goods = pred[1]
             print("At %f\n Unloading %s at %s\n" % (start, goods, port))
-            time.sleep(2)
+            time.sleep(1)
 
             print("Vessel in state %s\n" % self.vessel.state)
 
@@ -92,7 +92,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Fuelling at %s\n" % (start, port))
-            time.sleep(2)
+            time.sleep(1)
 
             print("Vessel in state %s\n" % self.vessel.state)
 
