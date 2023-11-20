@@ -2,35 +2,56 @@
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
-        goodsab goodsce goodscd - goods
+        goodsab goodsbd goodsce - goods
         tank0 - tank
         fuelteam0 - fuelteam
+        trucka truckb truckc truckd trucke - truck
     )
 
     (:init
         (empty tank0)
-        (fuelteamat fuelteam0 portb)
-        (path porta portb)
-        (path portb portc)
-        (path portc portd)
-        (path portd porte)
+        (fuelteamat fuelteam0 portc)
+        (truckat trucka porta)
+        (truckat truckb portb)
+        (truckat truckc portc)
+        (truckat truckd portd)
+        (truckat trucke porte)
+        (truckfree truckc)
+        (truckfree truckd)
+        (truckfree trucke)
         (goodsat goodsce portc)
-        (goodsat goodscd portc)
-        (= (length porta portb) 5000)
-        (= (length portb portc) 2500)
-        (= (length portc portd) 3000)
-        (= (length portd porte) 1500)
+        (path porta portb)
+        (path portb porta)
+        (path portb portc)
+        (path portc portb)
+        (path portb porte)
+        (path porte portb)
+        (path portc portd)
+        (path portd portc)
+        (path portc porte)
+        (path porte portc)
+        (= (length porta portb) 587)
+        (= (length portb porta) 587)
+        (= (length portb portc) 758)
+        (= (length portc portb) 758)
+        (= (length portb porte) 831)
+        (= (length porte portb) 831)
+        (= (length portc portd) 438)
+        (= (length portd portc) 438)
+        (= (length portc porte) 685)
+        (= (length porte portc) 685)
         (= (speed vessel0) 3)
-        (onboard goodsab vessel0)
-        (vesselat vessel0 portb)
+        (truckfree trucka)
+        (onboard goodsbd vessel0)
+        (goodsat goodsab portb)
+        (truckfree truckb)
+        (vesselat vessel0 portc)
         (isdocked vessel0)
     )
 
     (:goal (and
-        (vesselat vessel0 porte)
-        (goodsat goodsab portb)
+        (goodsat goodsbd portd)
         (goodsat goodsce porte)
-        (goodsat goodscd portd)
         (full tank0)
     ))
 

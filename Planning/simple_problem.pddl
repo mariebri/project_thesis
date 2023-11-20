@@ -1,4 +1,4 @@
-(define (problem simple) (:domain graphplan)
+(define (problem simple) (:domain simple)
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port

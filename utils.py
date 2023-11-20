@@ -5,8 +5,8 @@ def getDomainProblemFiles(plannerType: PlannerType, replan=False):
         domainFile  = "/home/marie/project_thesis/Planning/temporal_domain.pddl"
         problemFile = "/home/marie/project_thesis/Planning/temporal_problem.pddl"
     elif plannerType == PlannerType.GRAPHPLAN:
-        domainFile  = "/home/marie/project_thesis/Planning/simple_domain.pddl"
-        problemFile = "/home/marie/project_thesis/Planning/simple_problem.pddl"
+        domainFile  = "/home/marie/project_thesis/Planning/graphplan_domain.pddl"
+        problemFile = "/home/marie/project_thesis/Planning/graphplan_problem.pddl"
 
     if replan:
         problemFile = problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"

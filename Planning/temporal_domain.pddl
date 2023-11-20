@@ -6,17 +6,20 @@
         goods
         tank
         fuelteam
+        truck
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
         (goodsat ?g - goods ?p - port)
         (fuelteamat ?f - fuelteam ?p - port)
+        (truckat ?t - truck ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
         (empty ?t - tank)
         (full ?t - tank)
+        (truckfree ?t - truck)
     )
 
     (:functions
@@ -38,55 +41,63 @@
         )
     )
 
-    (:durative-action undock
-        :parameters (?p - port ?v - vessel)
-        :duration (= ?duration 10)
-        :condition (and
-            (at start (isdocked ?v))
-            (over all (vesselat ?v ?p))
-        )
-        :effect (and
-            (at start (not (isdocked ?v)))
-        )
-    )
-
     (:durative-action dock
         :parameters (?p - port ?v - vessel)
         :duration (= ?duration 10)
         :condition (and
             (at start ( not (isdocked ?v)))
-            (over all (vesselat ?v ?p))
+            (at start (vesselat ?v ?p))
         )
         :effect (and
             (at end (isdocked ?v))
         )
     )
 
+    (:durative-action undock
+        :parameters (?p - port ?v - vessel)
+        :duration (= ?duration 10)
+        :condition (and
+            (at start (isdocked ?v))
+            (at start (vesselat ?v ?p))
+        )
+        :effect (and
+            (at start (not (isdocked ?v)))
+        )
+    )
+
     (:durative-action load
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :duration (= ?duration 60)
         :condition (and
-        	(at start (goodsat ?g ?p))
-        	(at start (vesselat ?v ?p))
+            (at start (goodsat ?g ?p))
+            (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
+            (at start (truckfree ?t))
+            (at start (truckat ?t ?p))
         )
-        :effect (and 
-        	(at start (not (goodsat ?g ?p)))
-        	(at end (onboard ?g ?v))
+        :effect (and
+            (at start (not (goodsat ?g ?p)))
+            (at start (not (truckfree ?t)))
+            (at end (onboard ?g ?v))
+            (at end (truckfree ?t))
         )
     )
 
     (:durative-action unload
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :duration (= ?duration 50)
         :condition (and
-        	(at start (onboard ?g ?v))
-        	(at start (vesselat ?v ?p))
+            (at start (onboard ?g ?v))
+            (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
+            (at start (truckfree ?t))
+            (at start (truckat ?t ?p))
         )
         :effect (and
-        	(at start (not (onboard ?g ?v)))
-        	(at end (goodsat ?g ?p))
+            (at start (not (onboard ?g ?v)))
+            (at start (not (truckfree ?t)))
+            (at end (goodsat ?g ?p))
+            (at end (truckfree ?t))
         )
     )
 

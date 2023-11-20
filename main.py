@@ -5,9 +5,9 @@ from utils import getDomainProblemFiles
 
 def mainPlanner():
     # Specify the planner type, domain and problem files, and the algorithm
-    plannerType = PlannerType.TEMPORAL
+    plannerType = PlannerType.GRAPHPLAN
     replan      = False
-    algorithm   = "stp-4"
+    algorithm   = "stp-2"
     domainFile, problemFile = getDomainProblemFiles(plannerType, replan)
 
     # Computing a plan, retrieving a list of the actions

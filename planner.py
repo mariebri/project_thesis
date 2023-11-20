@@ -102,7 +102,7 @@ class Plan:
 
         elif self.planner == PlannerType.GRAPHPLAN:
             domain, problem = pp.load_pddl(self.domainFile, self.problemFile)
-            plan = pp.solvers.graph_plan(problem)
+            plan = pp.solvers.graph_plan(problem, max_depth=10000, print_debug=True)
 
         else:
             print("Invalid PlannerType")

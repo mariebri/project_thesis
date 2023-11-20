@@ -1,4 +1,4 @@
-(define (domain graphplan)
+(define (domain simple)
     (:requirements :typing :strips)
     (:types
         vessel
