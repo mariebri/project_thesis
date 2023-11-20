@@ -4,12 +4,14 @@
         porta portb portc portd porte - port
         goodsab goodsce goodscd - goods
         tank0 - tank
+        fuelteam0 - fuelteam
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
         (empty tank0)
+        (fuelteamat fuelteam0 portc)
         (path porta portb)
         (path portb portc)
         (path portc portd)
@@ -17,7 +19,6 @@
         (goodsat goodsab porta)
         (goodsat goodsce portc)
         (goodsat goodscd portc)
-        (fuelat portc)
         (= (length porta portb) 5000)   ; m
         (= (length portb portc) 2500)   ; m
         (= (length portc portd) 3000)   ; m

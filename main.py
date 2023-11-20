@@ -7,7 +7,7 @@ def mainPlanner():
     # Specify the planner type, domain and problem files, and the algorithm
     plannerType = PlannerType.TEMPORAL
     replan      = False
-    algorithm   = "stp-3"
+    algorithm   = "stp-4"
     domainFile, problemFile = getDomainProblemFiles(plannerType, replan)
 
     # Computing a plan, retrieving a list of the actions

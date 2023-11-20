@@ -5,12 +5,13 @@
         port
         goods
         tank
+        fuelteam
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
         (goodsat ?g - goods ?p - port)
-        (fuelat ?p - port)
+        (fuelteamat ?f - fuelteam ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
@@ -45,7 +46,7 @@
             (over all (vesselat ?v ?p))
         )
         :effect (and
-            (at end (not (isdocked ?v)))
+            (at start (not (isdocked ?v)))
         )
     )
 
@@ -67,7 +68,7 @@
         :condition (and
         	(at start (goodsat ?g ?p))
         	(at start (vesselat ?v ?p))
-            (over all (isdocked ?v))
+            (at start (isdocked ?v))
         )
         :effect (and 
         	(at start (not (goodsat ?g ?p)))
@@ -81,7 +82,7 @@
         :condition (and
         	(at start (onboard ?g ?v))
         	(at start (vesselat ?v ?p))
-            (over all (isdocked ?v))
+            (at start (isdocked ?v))
         )
         :effect (and
         	(at start (not (onboard ?g ?v)))
@@ -90,13 +91,13 @@
     )
 
     (:durative-action fuelling
-        :parameters (?p - port ?v - vessel ?t - tank)
+        :parameters (?p - port ?v - vessel ?t - tank ?f - fuelteam)
         :duration (= ?duration 50)
         :condition (and
-            (at start (fuelat ?p))
+            (at start (fuelteamat ?f ?p))
             (at start (empty ?t))
             (at start (vesselat ?v ?p))
-            (over all (isdocked ?v))
+            (at start (isdocked ?v))
         )
         :effect (and
             (at end (full ?t))
