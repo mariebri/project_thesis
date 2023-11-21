@@ -35,10 +35,6 @@ class PlanExecutor():
 
             print("Vessel in state %s\n" % self.vessel.state)
 
-            ### Testing replanning at this step -- TEST FOR GRAPHPLAN
-            #fileName = '/home/marie/project_thesis/Planning/replan_problem.pddl'
-            #makeProblemFile(self.vessel, fileName, plannerType=self.plannerType)
-
         elif action == "undock":
             self.vessel.updateState(State.UNDOCKING)
             if self.plannerType == PlannerType.TEMPORAL:
@@ -61,7 +57,7 @@ class PlanExecutor():
 
             print("Vessel in state %s\n" % self.vessel.state)
 
-        elif action == "load":
+        elif action == "load" or action == "start-load" or action == "end-load":
             self.vessel.updateState(State.DOCKED)
             if self.plannerType == PlannerType.TEMPORAL:
                 self.vessel.updatePredStart(a)
@@ -73,7 +69,7 @@ class PlanExecutor():
 
             print("Vessel in state %s\n" % self.vessel.state)
 
-        elif action == "unload":
+        elif action == "unload" or action == "start-unload" or action == "end-unload":
             self.vessel.updateState(State.DOCKED)
             if self.plannerType == PlannerType.TEMPORAL:
                 self.vessel.updatePredStart(a)

@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import time
 import pyplanning as pp
 from enum import Enum
 
@@ -44,8 +45,14 @@ class Plan:
         self.planner = planner
         self.algorithm = algorithm
 
+        start = time.time()
         self.planFile = self.computePlanFile()
+        end = time.time()
+        self.computationTime = end - start
+        
         self.actions = self.actionsFromPlanFile()
+
+        self.printPlan()
 
         self.initPred, self.goalPred = self.getPredicates()
 
@@ -53,10 +60,8 @@ class Plan:
         return self.actions
 
     def printPlan(self):
-        i = 1
         for a in self.actions:
-            print(i, ":", a.getAction(), a.getPredicates())
-            i += 1
+            print(a.getStartTime(), ":", a.getAction(), a.getPredicates())
 
     def computePlanFile(self):
         if self.planner == PlannerType.TEMPORAL:
@@ -101,8 +106,9 @@ class Plan:
                 os.remove(planFile1)
 
         elif self.planner == PlannerType.GRAPHPLAN:
-            domain, problem = pp.load_pddl(self.domainFile, self.problemFile)
-            plan = pp.solvers.graph_plan(problem, max_depth=10000, print_debug=True)
+            _, problem = pp.load_pddl(self.domainFile, self.problemFile)
+            plan = pp.solvers.graph_plan(problem, print_debug=True)
+            print(plan)
 
         else:
             print("Invalid PlannerType")
@@ -132,13 +138,13 @@ class Plan:
         elif self.planner == PlannerType.GRAPHPLAN:
             for i in range(len(self.planFile)):
                 i += 1
-                line = self.planFile[i].pop()
-                action = line.action.name
-                predicates = [str(o) for o in line.objects]
-                addEffects, delEffects = self.getEffects(action, predicates)
-                action = Action(action, predicates, addEffects, delEffects, self.planner)
-                actions.append(action)     
-        
+                for line in self.planFile[i]:
+                    #line = self.planFile[i].pop()
+                    action = line.action.name
+                    predicates = [str(o) for o in line.objects]
+                    addEffects, delEffects = self.getEffects(action, predicates)
+                    action = Action(action, predicates, addEffects, delEffects, self.planner, start=i)
+                    actions.append(action)
         return actions
 
     def getPredicates(self):

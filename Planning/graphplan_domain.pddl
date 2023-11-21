@@ -4,6 +4,9 @@
         vessel
         port
         goods
+        tank
+        fuelteam
+        truck
     )
 
     (:predicates
@@ -16,6 +19,8 @@
         (isdocked ?v - vessel)
         (empty ?t - tank)
         (full ?t - tank)
+        (isloading ?g - goods ?t - truck ?v - vessel)
+        (truckfree ?t - truck)
     )
 
     (:action transit
@@ -53,31 +58,69 @@
         )
     )
 
-    (:action load
+    (:action start-load
         :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :precondition (and
             (goodsat ?g ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
             (truckat ?t ?p)
+            (not (isloading ?g ?t ?v))
+            (truckfree ?t)
+        )
+        :effect (and
+            (isloading ?g ?t ?v)
+            (not (truckfree ?t))
+        )
+    )
+
+    (:action end-load
+        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+        :precondition (and
+            (goodsat ?g ?p)
+            (vesselat ?v ?p)
+            (isdocked ?v)
+            (truckat ?t ?p)
+            (isloading ?g ?t ?v)
         )
         :effect (and
             (not (goodsat ?g ?p))
             (onboard ?g ?v)
+            (not (isloading ?g ?t ?v))
+            (truckfree ?t)
         )
     )
 
-    (:action unload
+    (:action start-unload
         :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :precondition (and
             (onboard ?g ?v)
             (vesselat ?v ?p)
             (isdocked ?v)
             (truckat ?t ?p)
+            (not (isloading ?g ?t ?v))
+            (truckfree ?t)
+        )
+        :effect (and
+            (isloading ?g ?t ?v)
+            (not (truckfree ?t))
+        )
+    )
+
+    (:action end-unload
+        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+        :precondition (and
+            (onboard ?g ?v)
+            (vesselat ?v ?p)
+            (isdocked ?v)
+            (truckat ?t ?p)
+            (isloading ?g ?t ?v)
         )
         :effect (and
             (not (onboard ?g ?v))
             (goodsat ?g ?p)
+            (not (isloading ?g ?t ?v))
+            (truckfree ?t)
         )
     )
 
