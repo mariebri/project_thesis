@@ -3,9 +3,7 @@ import shutil
 import subprocess
 import time
 import pyplanning as pp
-from enum import Enum
-
-PlannerType = Enum('PlannerType', ['TEMPORAL', 'GRAPHPLAN'])
+from utils import *
 
 class Action:
     def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, end=0.0):
@@ -39,9 +37,8 @@ class Action:
         return self.end - self.start
 
 class Plan:
-    def __init__(self, domainFile, problemFile, planner: PlannerType, algorithm="stp-2"):
-        self.domainFile = domainFile
-        self.problemFile = problemFile
+    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False):
+        self.domainFile, self.problemFile = getDomainProblemFiles(plannerType=planner, replan=replan)
         self.planner = planner
         self.algorithm = algorithm
 

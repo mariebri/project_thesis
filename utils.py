@@ -1,4 +1,6 @@
-from planner import PlannerType
+from enum import Enum
+
+PlannerType = Enum('PlannerType', ['TEMPORAL', 'GRAPHPLAN'])
 
 def getDomainProblemFiles(plannerType: PlannerType, replan=False):
     if plannerType == PlannerType.TEMPORAL:

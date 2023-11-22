@@ -1,7 +1,6 @@
 # This module is responsible for replanning, i.e. making new problem files
 from vessel_state import VesselState
-from planner import PlannerType
-from utils import getDomainProblemFiles
+from utils import *
 
 
 def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):

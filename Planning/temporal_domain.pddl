@@ -4,9 +4,9 @@
         vessel
         port
         goods
+        truck
         tank
         fuelteam
-        truck
     )
 
     (:predicates
@@ -69,9 +69,9 @@
         :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :duration (= ?duration 60)
         :condition (and
-            (at start (goodsat ?g ?p))
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
+            (at start (goodsat ?g ?p))
             (at start (truckfree ?t))
             (at start (truckat ?t ?p))
         )
@@ -87,9 +87,9 @@
         :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
         :duration (= ?duration 50)
         :condition (and
-            (at start (onboard ?g ?v))
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
+            (at start (onboard ?g ?v))
             (at start (truckfree ?t))
             (at start (truckat ?t ?p))
         )
@@ -105,12 +105,14 @@
         :parameters (?p - port ?v - vessel ?t - tank ?f - fuelteam)
         :duration (= ?duration 50)
         :condition (and
-            (at start (fuelteamat ?f ?p))
-            (at start (empty ?t))
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
+            (at start (fuelteamat ?f ?p))
+            (at start (empty ?t))
         )
         :effect (and
+            (at start (vesselat ?v ?p))
+            (at start (isdocked ?v))
             (at end (full ?t))
         )
     )

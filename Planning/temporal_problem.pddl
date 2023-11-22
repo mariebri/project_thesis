@@ -52,7 +52,7 @@
     (:goal (and
         (isdocked vessel0)
         (goodsat goodsab portb)
-        (goodsat goodsbd portd)
+        ;(goodsat goodsbd portd)
         (goodsat goodsce porte)
         (full tank0)
     ))

@@ -1,5 +1,6 @@
-from planner import Action, PlannerType
+from planner import Action
 from vessel_state import VesselState, State
+from utils import PlannerType
 import time
 from replanner import *
 
