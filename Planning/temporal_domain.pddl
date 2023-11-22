@@ -20,6 +20,7 @@
         (empty ?t - tank)
         (full ?t - tank)
         (truckfree ?t - truck)
+        (intransit ?v - vessel ?from - port)
     )
 
     (:functions
@@ -31,13 +32,15 @@
         :parameters (?from ?to - port ?v - vessel)
         :duration (= ?duration (/ (length ?from ?to) (speed ?v)))
         :condition (and
-        	(at start (vesselat ?v ?from))
-        	(over all (path ?from ?to))
+            (at start (vesselat ?v ?from))
+            (over all (path ?from ?to))
             (over all (not (isdocked ?v)))
         )
         :effect (and
+            (at start (not (vesselat ?v ?from)))
+            (at start (intransit ?v ?from))
         	(at end (vesselat ?v ?to))
-        	(at start (not (vesselat ?v ?from)))
+            (at end (not (intransit ?v ?from)))
         )
     )
 

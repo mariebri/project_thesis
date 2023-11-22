@@ -3,12 +3,13 @@ from vessel_state import VesselState
 from utils import *
 
 
-def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
+def makeProblemFile(vessel: VesselState, plannerType: PlannerType):
     initState   = vessel.initPred
     goalState   = vessel.goalPred
     
     # Open a file for writing
-    f   = open(fileName, "w")
+    replanFile = '/home/marie/project_thesis/Planning/replan_problem.pddl'
+    f   = open(replanFile, "w")
 
     # Open the original problem file
     _, problemFile = getDomainProblemFiles(plannerType)
@@ -34,10 +35,15 @@ def makeProblemFile(vessel: VesselState, fileName, plannerType: PlannerType):
     
     initLines   = ["    (:init\n"]
     for state in initState:
-        if "=" not in state:
+        if "=" in state:
+            initLines.append("        " + state + "\n")
+        elif "intransit" in state:
+            # If a vessel is intransit, we simplify and say that
+            # the vessel is at the port it was transitting from
+            state = state.replace("intransit", "vesselat")
             initLines.append("        (" + state + ")\n")
         else:
-            initLines.append("        " + state + "\n")
+            initLines.append("        (" + state + ")\n")
     initLines.append("    )\n")
     initLines.append("\n")
 

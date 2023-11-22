@@ -1,12 +1,12 @@
+import sys
 from planner import *
 from utils import *
 from plan_executor import PlanExecutor
 from vessel_state import VesselState
 
-def mainPlanner():
+def main(replan):
     # Specify the planner type, domain and problem files, and the algorithm
-    plannerType = PlannerType.GRAPHPLAN
-    replan      = True
+    plannerType = PlannerType.TEMPORAL
     algorithm   = "stp-3"
 
     # Computing a plan, retrieving a list of the actions
@@ -25,4 +25,10 @@ def mainPlanner():
 
 
 if __name__ == '__main__':
-    mainPlanner()
+    
+    replan = False
+    if len(sys.argv) == 2:
+        if sys.argv[1].lower() == "true":
+            replan = True
+    
+    main(replan)

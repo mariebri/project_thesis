@@ -1,7 +1,9 @@
+import time
+import os
+import sys
 from planner import Action
 from vessel_state import VesselState, State
 from utils import PlannerType
-import time
 from replanner import *
 
 class PlanExecutor():
@@ -13,7 +15,13 @@ class PlanExecutor():
     def executePlan(self):
         actions = self.vessel.allActions
         for a in actions:
-            self.executeAction(a)
+            try:
+                self.executeAction(a)
+            except KeyboardInterrupt:
+                print('\nReplanning')
+                makeProblemFile(self.vessel, plannerType=self.plannerType)
+                os.system('python3 main.py True')
+                sys.exit()
             self.vessel.updateActions(a)
             self.vessel.updatePredEnd(a)
 
@@ -21,8 +29,6 @@ class PlanExecutor():
         action  = a.getAction()
         pred    = a.getPredicates()
         start   = a.getStartTime()
-        end     = a.getEndTime()
-        dur     = a.getDuration()
 
         if action == "transit":
             self.vessel.updateState(State.IN_TRANSIT)
@@ -32,9 +38,7 @@ class PlanExecutor():
             portFrom    = pred[0]
             portTo      = pred[1]
             print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
-            time.sleep(2)
-
-            print("Vessel in state %s\n" % self.vessel.state)
+            time.sleep(3)
 
         elif action == "undock":
             self.vessel.updateState(State.UNDOCKING)
@@ -43,9 +47,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Undocking at %s\n" % (start, port))
-            time.sleep(1)
-
-            print("Vessel in state %s\n" % self.vessel.state)
+            time.sleep(3)
 
         elif action == "dock":
             self.vessel.updateState(State.DOCKING)
@@ -54,9 +56,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Docking at %s\n" % (start, port))
-            time.sleep(1)
-
-            print("Vessel in state %s\n" % self.vessel.state)
+            time.sleep(3)
 
         elif action == "load" or action == "start-load" or action == "end-load":
             self.vessel.updateState(State.DOCKED)
@@ -66,9 +66,7 @@ class PlanExecutor():
             port = pred[0]
             goods = pred[1]
             print("At %f\n Loading %s at %s\n" % (start, goods, port))
-            time.sleep(1)
-
-            print("Vessel in state %s\n" % self.vessel.state)
+            time.sleep(3)
 
         elif action == "unload" or action == "start-unload" or action == "end-unload":
             self.vessel.updateState(State.DOCKED)
@@ -78,9 +76,7 @@ class PlanExecutor():
             port = pred[0]
             goods = pred[1]
             print("At %f\n Unloading %s at %s\n" % (start, goods, port))
-            time.sleep(1)
-
-            print("Vessel in state %s\n" % self.vessel.state)
+            time.sleep(3)
 
         elif action == "fuelling":
             self.vessel.updateState(State.DOCKED)
@@ -89,14 +85,7 @@ class PlanExecutor():
 
             port = pred[0]
             print("At %f\n Fuelling at %s\n" % (start, port))
-            time.sleep(1)
-
-            print("Vessel in state %s\n" % self.vessel.state)
-
-            ### Testing replanning at this step
-            fileName = '/home/marie/project_thesis/Planning/replan_problem.pddl'
-            makeProblemFile(self.vessel, fileName, plannerType=self.plannerType)
-
+            time.sleep(3)
 
         else:
             raise Exception("Not a valid action name")
