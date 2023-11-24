@@ -6,21 +6,16 @@
         goods
         tank
         fuelteam
-        truck
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
         (goodsat ?g - goods ?p - port)
         (fuelteamat ?f - fuelteam ?p - port)
-        (truckat ?t - truck ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
-        (empty ?t - tank)
-        (full ?t - tank)
-        (isloading ?g - goods ?t - truck ?v - vessel)
-        (truckfree ?t - truck)
+        (fulltank ?t - tank)
     )
 
     (:action transit
@@ -58,69 +53,29 @@
         )
     )
 
-    (:action start-load
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+    (:action load
+        :parameters (?p - port ?g - goods ?v - vessel)
         :precondition (and
             (goodsat ?g ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
-            (truckat ?t ?p)
-            (not (isloading ?g ?t ?v))
-            (truckfree ?t)
-        )
-        :effect (and
-            (isloading ?g ?t ?v)
-            (not (truckfree ?t))
-        )
-    )
-
-    (:action end-load
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
-        :precondition (and
-            (goodsat ?g ?p)
-            (vesselat ?v ?p)
-            (isdocked ?v)
-            (truckat ?t ?p)
-            (isloading ?g ?t ?v)
         )
         :effect (and
             (not (goodsat ?g ?p))
             (onboard ?g ?v)
-            (not (isloading ?g ?t ?v))
-            (truckfree ?t)
         )
     )
 
-    (:action start-unload
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+    (:action unload
+        :parameters (?p - port ?g - goods ?v - vessel)
         :precondition (and
             (onboard ?g ?v)
             (vesselat ?v ?p)
             (isdocked ?v)
-            (truckat ?t ?p)
-            (not (isloading ?g ?t ?v))
-            (truckfree ?t)
-        )
-        :effect (and
-            (isloading ?g ?t ?v)
-            (not (truckfree ?t))
-        )
-    )
-
-    (:action end-unload
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
-        :precondition (and
-            (onboard ?g ?v)
-            (vesselat ?v ?p)
-            (isdocked ?v)
-            (truckat ?t ?p)
-            (isloading ?g ?t ?v)
         )
         :effect (and
             (not (onboard ?g ?v))
             (goodsat ?g ?p)
-            (not (isloading ?g ?t ?v))
-            (truckfree ?t)
         )
     )
 
@@ -128,12 +83,11 @@
         :parameters (?p - port ?v - vessel ?t - tank ?f - fuelteam)
         :precondition (and
             (fuelteamat ?f ?p)
-            (empty ?t)
             (vesselat ?v ?p)
             (isdocked ?v)
         )
         :effect (and
-            (full ?t)
+            (fulltank ?t)
         )
     )
 )

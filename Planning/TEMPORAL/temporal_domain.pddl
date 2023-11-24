@@ -4,7 +4,6 @@
         vessel
         port
         goods
-        truck
         tank
         fuelteam
     )
@@ -13,14 +12,12 @@
         (vesselat ?v - vessel ?p - port)
         (goodsat ?g - goods ?p - port)
         (fuelteamat ?f - fuelteam ?p - port)
-        (truckat ?t - truck ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
-        (empty ?t - tank)
-        (full ?t - tank)
-        (truckfree ?t - truck)
+        (fulltank ?t - tank)
         (intransit ?v - vessel ?from - port)
+        (isloading ?v - vessel)
     )
 
     (:functions
@@ -69,38 +66,36 @@
     )
 
     (:durative-action load
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+        :parameters (?p - port ?v - vessel ?g - goods)
         :duration (= ?duration 60)
         :condition (and
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
             (at start (goodsat ?g ?p))
-            (at start (truckfree ?t))
-            (at start (truckat ?t ?p))
+            ;(at start (not (isloading ?v)))
         )
         :effect (and
             (at start (not (goodsat ?g ?p)))
-            (at start (not (truckfree ?t)))
+            ;(at start (isloading ?v))
             (at end (onboard ?g ?v))
-            (at end (truckfree ?t))
+            ;(at end (not (isloading ?v)))
         )
     )
 
     (:durative-action unload
-        :parameters (?p - port ?g - goods ?v - vessel ?t - truck)
+        :parameters (?p - port ?v - vessel ?g - goods)
         :duration (= ?duration 50)
         :condition (and
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
             (at start (onboard ?g ?v))
-            (at start (truckfree ?t))
-            (at start (truckat ?t ?p))
+            ;(at start (not (isloading ?v)))
         )
         :effect (and
             (at start (not (onboard ?g ?v)))
-            (at start (not (truckfree ?t)))
+            ;(at start (isloading ?v))
             (at end (goodsat ?g ?p))
-            (at end (truckfree ?t))
+            ;(at end (not (isloading ?v)))
         )
     )
 
@@ -111,12 +106,9 @@
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
             (at start (fuelteamat ?f ?p))
-            (at start (empty ?t))
         )
         :effect (and
-            (at start (vesselat ?v ?p))
-            (at start (isdocked ?v))
-            (at end (full ?t))
+            (at end (fulltank ?t))
         )
     )
 

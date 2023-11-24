@@ -6,7 +6,7 @@ from vessel_state import VesselState
 
 def main(replan):
     # Specify the planner type, domain and problem files, and the algorithm
-    plannerType = PlannerType.GRAPHPLAN
+    plannerType = PlannerType.TEMPORAL
     algorithm   = "stp-3"
 
     # Computing a plan, retrieving a list of the actions
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         if sys.argv[1].lower() == "true":
             replan = True
-    
+
     main(replan)

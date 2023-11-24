@@ -2,30 +2,17 @@
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
-        goodsab goodsbd goodsce - goods
+        goodsae goodsbd - goods
         tank0 - tank
         fuelteam0 - fuelteam
-        trucka truckb truckc truckd trucke - truck
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
-        (empty tank0)
-        (fuelteamat fuelteam0 portc)
-        (truckat trucka porta)
-        (truckat truckb portb)
-        (truckat truckc portc)
-        (truckat truckd portd)
-        (truckat trucke porte)
-        (truckfree trucka)
-        (truckfree truckb)
-        (truckfree truckc)
-        (truckfree truckd)
-        (truckfree trucke)
-        (goodsat goodsab porta)
+        (fuelteamat fuelteam0 portb)
+        (goodsat goodsae porta)
         (goodsat goodsbd portb)
-        (goodsat goodsce portc)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -50,10 +37,9 @@
     )
 
     (:goal (and
-        (goodsat goodsab portb)
-        (goodsat goodsce porte)
-        (full tank0)
-        ;(goodsat goodsbd portd)
+        (goodsat goodsae porte)
+        (goodsat goodsbd portd)
+        (fulltank tank0)
     ))
 
     (:metric minimize (total-time))
