@@ -10,7 +10,7 @@
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
-        (fuelteamat fuelteam0 portb)
+        (fuelteamat fuelteam0 portd)
         (goodsat goodsae porta)
         (goodsat goodsbd portb)
         (path porta portb)
@@ -34,12 +34,16 @@
         (= (length portc porte) 685)   ; m
         (= (length porte portc) 685)   ; m
         (= (speed vessel0) 3)          ; m/s (approx 6 knots)
+        (fuelteamat fuelteam0 porta)   ; Comment if not in scenario 3
+        (fuelteamat fuelteam0 portb)   ; Comment if not in scenario 3
+        (fuelteamat fuelteam0 portc)   ; Comment if not in scenario 3
+        (fuelteamat fuelteam0 porte)   ; Comment if not in scenario 3
     )
 
     (:goal (and
         (goodsat goodsae porte)
         (goodsat goodsbd portd)
-        (fulltank tank0)
+        ;(fulltank tank0)      ; Unomment if not in scenario 3
     ))
 
     (:metric minimize (total-time))

@@ -7,7 +7,7 @@ import copy
 import pyplanning as pp
 from utils import *
 from vessel import *
-from replanner import makeProblemFile
+from replanner import Replanner
 
 class Action:
     def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, end=0.0):
@@ -41,7 +41,7 @@ class Action:
         return self.end - self.start
 
 class Planner:
-    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False):
+    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, fuelLevel=100):
         self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan)
         self.planner                = planner
         self.algorithm              = algorithm
@@ -54,7 +54,7 @@ class Planner:
         self.finishedActions        = []
         self.allActions             = self.remainingActions + self.finishedActions
 
-        self.vessel = Vessel()
+        self.vessel = Vessel(fuelLevel=fuelLevel, replan=replan)
 
     def printPlan(self):
         for a in self.actions:
@@ -270,8 +270,18 @@ class Planner:
                 self.executeAction(a)
             except KeyboardInterrupt:
                 print('\nReplanning')
-                makeProblemFile(initState=self.init, goalState=self.goal, plannerType=self.planner)
-                os.system('python3 main.py True')
+                replanner = Replanner(self.init, self.goal, self.planner)
+
+                if self.vessel.low_fuel:
+                    print('Low fuel...')
+                    replanner.makeProblemFile(low_fuel=True)
+                    os.system('python3 main.py True %s' % self.vessel.fuelLevel)
+                    sys.exit()
+                
+                replanner.makeProblemFile()
+                print('Made replan problem file')
+                time.sleep(10)
+                os.system('python3 main.py True 100')
                 sys.exit()
             self.updateActions(a)
             self.updatePredEnd(a)
@@ -288,7 +298,9 @@ class Planner:
             portFrom    = pred[0]
             portTo      = pred[1]
             print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
-            time.sleep(3)
+            for i in range(3):
+                self.vessel.updateFuelLevel(-5)
+                time.sleep(1)
 
         elif action == "undock":
             self.vessel.updateState(State.UNDOCKING)
@@ -296,7 +308,9 @@ class Planner:
 
             port = pred[0]
             print("At %f\n Undocking at %s\n" % (start, port))
-            time.sleep(3)
+            for i in range(1):
+                self.vessel.updateFuelLevel(-5)
+                time.sleep(1)
 
         elif action == "dock":
             self.vessel.updateState(State.DOCKING)
@@ -304,7 +318,9 @@ class Planner:
 
             port = pred[0]
             print("At %f\n Docking at %s\n" % (start, port))
-            time.sleep(3)
+            for i in range(1):
+                self.vessel.updateFuelLevel(-5)
+                time.sleep(1)
 
         elif action == "load":
             self.vessel.updateState(State.DOCKED)
@@ -330,7 +346,13 @@ class Planner:
 
             port = pred[0]
             print("At %f\n Fuelling at %s\n" % (start, port))
-            time.sleep(3)
+            for i in range(5):
+                self.vessel.updateFuelLevel(20)
+                time.sleep(1)
+
+            # Uncomment if not in scenario 3
+            self.vessel.low_fuel = False
+            raise KeyboardInterrupt
 
         else:
             raise Exception("Not a valid action name")
