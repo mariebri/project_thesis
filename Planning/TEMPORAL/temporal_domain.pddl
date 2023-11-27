@@ -17,7 +17,6 @@
         (isdocked ?v - vessel)
         (fulltank ?t - tank)
         (intransit ?v - vessel ?from - port)
-        (isloading ?v - vessel)
     )
 
     (:functions
@@ -72,13 +71,10 @@
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
             (at start (goodsat ?g ?p))
-            ;(at start (not (isloading ?v)))
         )
         :effect (and
             (at start (not (goodsat ?g ?p)))
-            ;(at start (isloading ?v))
             (at end (onboard ?g ?v))
-            ;(at end (not (isloading ?v)))
         )
     )
 
@@ -89,13 +85,10 @@
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
             (at start (onboard ?g ?v))
-            ;(at start (not (isloading ?v)))
         )
         :effect (and
             (at start (not (onboard ?g ?v)))
-            ;(at start (isloading ?v))
             (at end (goodsat ?g ?p))
-            ;(at end (not (isloading ?v)))
         )
     )
 

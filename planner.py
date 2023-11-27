@@ -1,9 +1,13 @@
 import os
+import sys
 import shutil
 import subprocess
 import time
+import copy
 import pyplanning as pp
 from utils import *
+from vessel import *
+from replanner import makeProblemFile
 
 class Action:
     def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, end=0.0):
@@ -36,39 +40,37 @@ class Action:
     def getDuration(self):
         return self.end - self.start
 
-class Plan:
+class Planner:
     def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False):
-        self.domainFile, self.problemFile = getDomainProblemFiles(plannerType=planner, replan=replan)
-        self.planner = planner
-        self.algorithm = algorithm
+        self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan)
+        self.planner                = planner
+        self.algorithm              = algorithm
 
-        start = time.time()
-        self.planFile = self.computePlanFile()
-        end = time.time()
-        self.computationTime = end - start
-        
-        self.actions = self.actionsFromPlanFile()
+        self.plan, self.compTime    = self.computePlan()
+        self.actions                = self.getActionsFromPlan()
+        self.init, self.goal        = self.getPredicates()
 
-        self.printPlan()
+        self.remainingActions       = copy.deepcopy(self.actions)
+        self.finishedActions        = []
+        self.allActions             = self.remainingActions + self.finishedActions
 
-        self.initPred, self.goalPred = self.getPredicates()
-
-    def getActions(self):
-        return self.actions
+        self.vessel = Vessel()
 
     def printPlan(self):
         for a in self.actions:
             print(a.getStartTime(), ":", a.getAction(), a.getPredicates())
 
-    def computePlanFile(self):
+    def computePlan(self):
+        start = time.time()
         if self.planner == PlannerType.TEMPORAL:
             try:
                 cmd0 = "cd"
                 cmd1 = ". temporal-planning-test/bin/activate"
                 cmd2 = "cd temporal-planning-test/temporal-planning/"
-                cmd3 = "python2.7 bin/plan.py " + self.algorithm + " " + self.domainFile + " " + self.problemFile
+                cmd3 = "python2.7 bin/plan.py " + self.algorithm + " " + self.domain + " " + self.problem
                 cmd  = cmd0 + "; " + cmd1 + "; " + cmd2 + "; " + cmd3
                 os.system(cmd)
+                end = time.time()
 
             except subprocess.TimeoutExpired as timeErr:
                 print("Process timeout")
@@ -103,21 +105,23 @@ class Plan:
                 os.remove(planFile1)
 
         elif self.planner == PlannerType.GRAPHPLAN:
-            _, problem = pp.load_pddl(self.domainFile, self.problemFile)
+            _, problem = pp.load_pddl(self.domain, self.problem)
             plan = pp.solvers.graph_plan(problem, print_debug=True)
+            end = time.time()
             print(plan)
 
         else:
             print("Invalid PlannerType")
             return
 
-        return plan
+        computationTime = end - start
+        return plan, computationTime
 
-    def actionsFromPlanFile(self):
+    def getActionsFromPlan(self):
         actions = []
 
         if self.planner == PlannerType.TEMPORAL:
-            with open(self.planFile) as f:
+            with open(self.plan) as f:
                 for l in f:
                     l = l.replace(")", "(").replace(":"," ").replace("["," ").replace("]"," ")
                     l = l.strip().split('(')
@@ -133,10 +137,10 @@ class Plan:
                     actions.append(action)
 
         elif self.planner == PlannerType.GRAPHPLAN:
-            for i in range(len(self.planFile)):
+            for i in range(len(self.plan)):
                 i += 1
-                for line in self.planFile[i]:
-                    #line = self.planFile[i].pop()
+                for line in self.plan[i]:
+                    #line = self.plan[i].pop()
                     action = line.action.name
                     predicates = [str(o) for o in line.objects]
                     addEffects, delEffects = self.getEffects(action, predicates)
@@ -148,7 +152,7 @@ class Plan:
         # Reads from the problem file and returns a list of all true initial and goal predicates
         initPred, goalPred = [], []
 
-        f       = open(self.problemFile, "r")
+        f       = open(self.problem, "r")
         lines   = f.readlines()
         end     = len(lines)
         f.close()
@@ -177,7 +181,7 @@ class Plan:
         # Reads from the domain file and returns a list of all add and del effects
         addEffects, delEffects = [], []
 
-        f       = open(self.domainFile, "r")
+        f       = open(self.domain, "r")
         lines   = f.readlines()
         end     = len(lines)
         f.close()
@@ -258,3 +262,133 @@ class Plan:
                     addEffects.append(effect + predString)
 
         return addEffects, delEffects
+
+    def executePlan(self):
+        actions = self.allActions
+        for a in actions:
+            try:
+                self.executeAction(a)
+            except KeyboardInterrupt:
+                print('\nReplanning')
+                makeProblemFile(initState=self.init, goalState=self.goal, plannerType=self.planner)
+                os.system('python3 main.py True')
+                sys.exit()
+            self.updateActions(a)
+            self.updatePredEnd(a)
+
+    def executeAction(self, a: Action):
+        action  = a.getAction()
+        pred    = a.getPredicates()
+        start   = a.getStartTime()
+
+        if action == "transit":
+            self.vessel.updateState(State.IN_TRANSIT)
+            self.updatePredStart(a)
+
+            portFrom    = pred[0]
+            portTo      = pred[1]
+            print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
+            time.sleep(3)
+
+        elif action == "undock":
+            self.vessel.updateState(State.UNDOCKING)
+            self.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Undocking at %s\n" % (start, port))
+            time.sleep(3)
+
+        elif action == "dock":
+            self.vessel.updateState(State.DOCKING)
+            self.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Docking at %s\n" % (start, port))
+            time.sleep(3)
+
+        elif action == "load":
+            self.vessel.updateState(State.DOCKED)
+            self.updatePredStart(a)
+
+            port = pred[0]
+            goods = pred[1]
+            print("At %f\n Loading %s at %s\n" % (start, goods, port))
+            time.sleep(3)
+
+        elif action == "unload":
+            self.vessel.updateState(State.DOCKED)
+            self.updatePredStart(a)
+
+            port = pred[0]
+            goods = pred[1]
+            print("At %f\n Unloading %s at %s\n" % (start, goods, port))
+            time.sleep(3)
+
+        elif action == "fuelling":
+            self.vessel.updateState(State.DOCKED)
+            self.updatePredStart(a)
+
+            port = pred[0]
+            print("At %f\n Fuelling at %s\n" % (start, port))
+            time.sleep(3)
+
+        else:
+            raise Exception("Not a valid action name")
+        
+    def updateActions(self, finishedAction: Action):
+        self.remainingActions.remove(finishedAction)
+        self.finishedActions.append(finishedAction)
+
+    def updatePredStart(self, startedAction: Action):
+        if self.planner == PlannerType.TEMPORAL:
+            # Only used for temporal planners
+            addEffects, delEffects = startedAction.getEffects()
+            addEffects = addEffects[0]
+            delEffects = delEffects[0]
+
+            # Update
+            effInPred = [False for i in range(len(addEffects))]
+            for pred in self.init:
+                for i in range(len(addEffects)):
+                    if pred == addEffects[i]:
+                        effInPred[i] = True
+                for eff in delEffects:
+                    if pred == eff:
+                        self.init.remove(pred)
+            
+            for i in range(len(effInPred)):
+                if not effInPred[i]:
+                    self.init.append(addEffects[i])
+
+            for pred in self.goal:
+                for eff in addEffects:
+                    if pred == eff:
+                        self.goal.remove(pred)
+        else:
+            return
+
+    def updatePredEnd(self, finishedAction: Action):
+        addEffects, delEffects = finishedAction.getEffects()
+
+        if self.planner == PlannerType.TEMPORAL:
+            addEffects = addEffects[1]
+            delEffects = delEffects[1]
+
+        # Update
+        effInPred = [False for i in range(len(addEffects))]
+        for pred in self.init:
+            for i in range(len(addEffects)):
+                if pred == addEffects[i]:
+                    effInPred[i] = True
+            for eff in delEffects:
+                if pred == eff:
+                    self.init.remove(pred)
+        
+        for i in range(len(effInPred)):
+            if not effInPred[i]:
+                self.init.append(addEffects[i])
+
+        for pred in self.goal:
+            for eff in addEffects:
+                if pred == eff:
+                    self.goal.remove(pred)

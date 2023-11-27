@@ -1,11 +1,7 @@
-# This module is responsible for replanning, i.e. making new problem files
-from vessel_state import VesselState
 from utils import *
 
 
-def makeProblemFile(vessel: VesselState, plannerType: PlannerType):
-    initState   = vessel.initPred
-    goalState   = vessel.goalPred
+def makeProblemFile(initState, goalState, plannerType):
     
     # Open a file for writing
     replanFile = '/home/marie/project_thesis/Planning/replan_problem.pddl'
