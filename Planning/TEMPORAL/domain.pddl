@@ -48,7 +48,7 @@
             (at start (vesselat ?v ?p))
         )
         :effect (and
-            (at end (isdocked ?v))
+            (at start (isdocked ?v))
         )
     )
 
@@ -65,7 +65,7 @@
     )
 
     (:durative-action load
-        :parameters (?p - port ?v - vessel ?g - goods)
+        :parameters (?p - port ?g - goods ?v - vessel)
         :duration (= ?duration 60)
         :condition (and
             (at start (vesselat ?v ?p))
@@ -79,7 +79,7 @@
     )
 
     (:durative-action unload
-        :parameters (?p - port ?v - vessel ?g - goods)
+        :parameters (?p - port ?g - goods ?v - vessel)
         :duration (= ?duration 50)
         :condition (and
             (at start (vesselat ?v ?p))

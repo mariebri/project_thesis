@@ -8,7 +8,6 @@
     )
 
     (:init
-        (fuelteamat fuelteam0 portd)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -30,18 +29,16 @@
         (= (length portc porte) 685)
         (= (length porte portc) 685)
         (= (speed vessel0) 3)
-        (fuelteamat fuelteam0 porta)
-        (fuelteamat fuelteam0 portb)
-        (fuelteamat fuelteam0 portc)
-        (fuelteamat fuelteam0 porte)
         (onboard goodsae vessel0)
         (onboard goodsbd vessel0)
-        (vesselat vessel0 portd)
-        (isdocked vessel0)
+        (vesselat vessel0 portc)
+        (fuelteamat fuelteam0 portd)
     )
 
     (:goal (and
         (fulltank tank0)
+        (goodsat goodsae porte)
+        (goodsat goodsbd portd)
     ))
 
     (:metric minimize (total-time))

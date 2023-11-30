@@ -1,16 +1,17 @@
 from utils import *
 
 class Replanner():
-    def __init__(self, init, goal, planner):
+    def __init__(self, init, goal, planner, scenario):
         self.init       = init
         self.goal       = goal
         self.planner    = planner
+        self.scenario   = scenario
 
-        self.replanFile = '/home/marie/project_thesis/Planning/replan_problem.pddl'
+        self.replanFile     = '/home/marie/project_thesis/Planning/replan_problem.pddl'
 
-    def makeProblemFile(self, low_fuel=False):
+    def makeProblemFile(self, low_fuel=False, port="porta"):
         f   = open(self.replanFile, "w")
-        _, problemFile = getDomainProblemFiles(self.planner, replan=False)
+        _, problemFile = getDomainProblemFiles(self.planner, replan=False, scenario=self.scenario)
         fPF = open(problemFile, "r")
 
         if self.planner == PlannerType.TEMPORAL:
@@ -42,16 +43,17 @@ class Replanner():
                 initLines.append("        (" + state + ")\n")
             else:
                 initLines.append("        (" + state + ")\n")
+        if low_fuel:
+            initLines.append("        (fuelteamat fuelteam0 " + port + ")\n")
         initLines.append("    )\n")
         initLines.append("\n")
 
-        goalLines   = ["    (:goal (and\n"]
+        goalLines       = ["    (:goal (and\n"]
         if low_fuel:
             goalLines.append("        (fulltank tank0)\n")
-        else:
-            for state in self.goal:
-                print(state)
-                goalLines.append("        (" + state + ")\n")
+
+        for state in self.goal:
+            goalLines.append("        (" + state + ")\n")
         goalLines.append("    ))\n")
         goalLines.append("\n")
 

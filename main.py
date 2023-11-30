@@ -6,9 +6,10 @@ def main(replan, fuelLevel):
     # Specify the planner type, domain and problem files, and the algorithm
     plannerType = PlannerType.TEMPORAL
     algorithm   = "stp-3"
+    scenario    = 3
 
     # Computing a plan, retrieving a list of the actions
-    plan    = Planner(plannerType, algorithm, replan, fuelLevel)
+    plan    = Planner(plannerType, algorithm, replan, fuelLevel, scenario)
     print("\n\nComputation time: ", plan.compTime)
     plan.printPlan()
     plan.executePlan()

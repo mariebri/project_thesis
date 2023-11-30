@@ -4,20 +4,21 @@ import shutil
 import subprocess
 import time
 import copy
+import math
 import pyplanning as pp
 from utils import *
 from vessel import *
 from replanner import Replanner
 
 class Action:
-    def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, end=0.0):
+    def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, dur=0.0):
         self.action = action
         self.predicates = predicates
         self.addEffects = addEffects
         self.delEffects = delEffects
         self.planner = planner
         self.start = float(start)
-        self.end = float(end)
+        self.dur = float(dur)
 
     def getAction(self):
         return self.action
@@ -35,16 +36,14 @@ class Action:
         return self.start
     
     def getEndTime(self):
-        return self.end
-    
-    def getDuration(self):
-        return self.end - self.start
+        return self.start + self.dur
 
 class Planner:
-    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, fuelLevel=100):
-        self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan)
+    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, fuelLevel=100, scenario=1):
+        self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan, scenario=scenario)
         self.planner                = planner
         self.algorithm              = algorithm
+        self.scenario               = scenario
 
         self.plan, self.compTime    = self.computePlan()
         self.actions                = self.getActionsFromPlan()
@@ -54,7 +53,7 @@ class Planner:
         self.finishedActions        = []
         self.allActions             = self.remainingActions + self.finishedActions
 
-        self.vessel = Vessel(fuelLevel=fuelLevel, replan=replan)
+        self.vessel = Vessel(fuelLevel=fuelLevel, replan=replan, scenario=self.scenario)
 
     def printPlan(self):
         for a in self.actions:
@@ -131,9 +130,9 @@ class Planner:
                     actionLine = l[1].split()
                     action = actionLine[0]
                     predicates = actionLine[1:]
-                    end = l[2].strip()
+                    dur = l[2].strip()
                     addEffects, delEffects = self.getEffects(action, predicates)
-                    action = Action(action, predicates, addEffects, delEffects, self.planner, start, end)
+                    action = Action(action, predicates, addEffects, delEffects, self.planner, start, dur)
                     actions.append(action)
 
         elif self.planner == PlannerType.GRAPHPLAN:
@@ -270,17 +269,16 @@ class Planner:
                 self.executeAction(a)
             except KeyboardInterrupt:
                 print('\nReplanning')
-                replanner = Replanner(self.init, self.goal, self.planner)
+                replanner = Replanner(self.init, self.goal, self.planner, self.scenario)
 
                 if self.vessel.low_fuel:
                     print('Low fuel...')
-                    replanner.makeProblemFile(low_fuel=True)
+                    print('Planning for an additional fuel stop')
+                    replanner.makeProblemFile(low_fuel=True, port=self.vessel.port)
                     os.system('python3 main.py True %s' % self.vessel.fuelLevel)
                     sys.exit()
                 
                 replanner.makeProblemFile()
-                print('Made replan problem file')
-                time.sleep(10)
                 os.system('python3 main.py True 100')
                 sys.exit()
             self.updateActions(a)
@@ -292,67 +290,69 @@ class Planner:
         start   = a.getStartTime()
 
         if action == "transit":
-            self.vessel.updateState(State.IN_TRANSIT)
-            self.updatePredStart(a)
-
             portFrom    = pred[0]
             portTo      = pred[1]
             print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
-            for i in range(3):
-                self.vessel.updateFuelLevel(-5)
-                time.sleep(1)
 
-        elif action == "undock":
-            self.vessel.updateState(State.UNDOCKING)
+            self.vessel.updateState(State.IN_TRANSIT, portTo)
             self.updatePredStart(a)
 
+            for i in range(math.floor(a.dur/10)):
+                self.vessel.updateFuelLevel(-1)
+                time.sleep(0.5)
+
+        elif action == "undock":
             port = pred[0]
             print("At %f\n Undocking at %s\n" % (start, port))
+
+            self.vessel.updateState(State.UNDOCKING, port)
+            self.updatePredStart(a)
+
             for i in range(1):
                 self.vessel.updateFuelLevel(-5)
                 time.sleep(1)
 
         elif action == "dock":
-            self.vessel.updateState(State.DOCKING)
-            self.updatePredStart(a)
-
             port = pred[0]
             print("At %f\n Docking at %s\n" % (start, port))
+
+            self.vessel.updateState(State.DOCKING, port)
+            self.updatePredStart(a)
+
             for i in range(1):
                 self.vessel.updateFuelLevel(-5)
                 time.sleep(1)
 
         elif action == "load":
-            self.vessel.updateState(State.DOCKED)
-            self.updatePredStart(a)
-
             port = pred[0]
             goods = pred[1]
             print("At %f\n Loading %s at %s\n" % (start, goods, port))
-            time.sleep(3)
 
-        elif action == "unload":
-            self.vessel.updateState(State.DOCKED)
+            self.vessel.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
+            time.sleep(1)
+
+        elif action == "unload":
             port = pred[0]
             goods = pred[1]
             print("At %f\n Unloading %s at %s\n" % (start, goods, port))
-            time.sleep(3)
 
-        elif action == "fuelling":
-            self.vessel.updateState(State.DOCKED)
+            self.vessel.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
+            time.sleep(1)
+
+        elif action == "fuelling":
             port = pred[0]
             print("At %f\n Fuelling at %s\n" % (start, port))
+
+            self.vessel.updateState(State.DOCKED, port)
+            self.updatePredStart(a)
+
             for i in range(5):
                 self.vessel.updateFuelLevel(20)
                 time.sleep(1)
-
-            # Uncomment if not in scenario 3
-            self.vessel.low_fuel = False
-            raise KeyboardInterrupt
 
         else:
             raise Exception("Not a valid action name")

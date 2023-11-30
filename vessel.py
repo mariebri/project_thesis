@@ -5,14 +5,18 @@ State = Enum('State', ['DOCKED', 'DOCKING', 'UNDOCKING', 'IN_TRANSIT'])
 
 class Vessel:
 
-    def __init__(self, state=State.DOCKED, fuelLevel=100, replan=False):
+    def __init__(self, state=State.DOCKED, fuelLevel=100, replan=False, scenario=1):
         self.state      = state
         self.fuelLevel  = fuelLevel
         self.replan     = replan
         self.low_fuel   = False
+        self.scenario   = scenario
 
-    def updateState(self, state):
-        self.state = state
+        self.port = "porta"
+
+    def updateState(self, state, port):
+        self.state  = state
+        self.port   = port
 
     def updateFuelLevel(self, change):
         if self.fuelLevel + change > 100:
@@ -20,8 +24,9 @@ class Vessel:
         else:
             self.fuelLevel = self.fuelLevel + change
 
-        # Uncomment if not in scenario 3
-        self.checkFuelLevel()
+        # Comment if not in scenario 3
+        if self.scenario == 3:
+            self.checkFuelLevel()
 
         print('New fuel level:', self.fuelLevel)
 
