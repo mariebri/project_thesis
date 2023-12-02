@@ -6,6 +6,8 @@ class ReVolt:
     def __init__(self, x):
         self.eta    = x[:3] # [x, y, psi]
         self.nu     = x[3:] # [u, v, r]
+        self.x      = np.concatenate((self.eta, self.nu), axis=0)
+        self.u      = np.zeros(6)
 
         self.g      = 9.807
         self.rho    = 1025  # kg/V (density of sea water)
@@ -24,11 +26,14 @@ class ReVolt:
         self.D      = np.array([[50.66, 0, 0], [0, 601.45, 83.05], [0, 83.1, 268.17]])
 
         # Thrusters
-        lx1, lx2, lx3   = -1.65, -1.65, 1.15
-        ly1, ly2, ly3   = -0.15,  0.15, 0.00
+        self.lx     = [-1.12, -1.12, 1.08]
+        self.ly     = [-0.15,  0.15, 0.00]
+        self.tau_max= [69, 30, 80]
         self.T_max  = [ 25,  25,  14]
         self.T_min  = [-25, -25, -6.1]
-        self.T_e    = np.array([[1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1], [0, lx1, ly2, -lx2, ly3, -lx3]])
+        self.T_e    = np.array([[1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1], [0, self.lx[0], self.ly[1], -self.lx[1], self.ly[2], -self.lx[2]]])
+        self.K      = np.diag([0.00205, 0.00205, 0.0009])
+        self.K_e    = np.diag([0.00205, 0.00205, 0.00205, 0.00205, 0.0009, 0.0009])
 
         # Casadi matrices
         self.M_ca   = ca.vertcat(ca.horzcat(263.93, 0, 0),
@@ -40,10 +45,10 @@ class ReVolt:
                                  ca.horzcat(0, 83.1, 268.17))
         self.T_ca   = ca.vertcat(ca.horzcat(1, 0, 1, 0, 1, 0),
                                  ca.horzcat(0, 1, 0, 1, 0, 1),
-                                 ca.horzcat(0, lx1, ly2, -lx2, ly3, -lx3))
+                                 ca.horzcat(0, self.lx[0], self.ly[1], -self.lx[1], self.ly[2], -self.lx[2]))
 
     def getJ(self, use2D=False):
-        psi = np.float(self.eta[2])
+        psi = np.float32(self.eta[2])
         J = np.array([[np.cos(psi), -np.sin(psi), 0],
                       [np.sin(psi),  np.cos(psi), 0],
                       [          0,            0, 1]])
@@ -63,16 +68,37 @@ class ReVolt:
                          [207.56*v-7*r, -250.07*u,             0]])
         return C
 
-    def getT_a(self, alpha=[0,0,np.pi/2]):
-        a1, a2, a3      = alpha[0], alpha[1], alpha[2]
-        lx1, lx2, lx3   = -1.65, -1.65, 1.15
-        ly1, ly2, ly3   = -0.15,  0.15, 0.00
+    def getB(self, a):
+        """
+        Returns tau = B*u, where a=alpha
+        """
+        a1, a2, a3      = a[0], a[1], a[2]
         return np.array([[    np.cos(a1),                      np.cos(a2),                    np.cos(a3)],
                          [    np.sin(a1),                      np.sin(a2),                    np.sin(a3)],
-                         [lx1*np.sin(a1),   ly2*np.cos(a2)-lx2*np.sin(a2), ly3*np.cos(a3)-lx3*np.sin(a3)]])
+                         [-self.ly[0]*np.cos(a1)+self.lx[0]*np.sin(a1),   -self.ly[1]*np.cos(a2)+self.lx[1]*np.sin(a2), -self.ly[2]*np.cos(a3)+self.lx[2]*np.sin(a3)]])
+
+    def getF(self, u):
+        """
+        Calculate real force vector from applied control inputs.
+        => Fi = Ki|ui|ui
+        Input: u is the array of thruster inputs, in percentages (-100, +100)
+        """
+        if u[2] >= 0:
+            F2 = float(0.001518 * abs(u[2]) * u[2])
+        else: 
+            F2 = float(0.0006172 * abs(u[2]) * u[2])
+        return np.array([[float(0.0027 * abs(u[0]) * u[0])],
+                         [float(0.0027 * abs(u[1]) * u[1])],
+                         [F2]])
+
+    def getTau(self, a, u):
+        """
+        Calculates tau = B(a)*F(u)
+        """
+        return self.getB(a) @ self.getF(u)
 
     def step(self, h, u):
-        tau         = self.T_e @ u
+        tau         = self.T_e @ self.K_e @ u
 
         eta_dot     = self.getJ() @ self.nu
         nu_dot      = np.linalg.solve(self.M, -(self.D + self.getC(self.nu)) @ self.nu + tau)
@@ -82,7 +108,7 @@ class ReVolt:
         x           = np.concatenate((self.eta, self.nu), axis=0)
         return x
         
-    def plot(self, eta=[]):
+    def plot(self, eta=[], color='blue'):
         if eta == []:
             x = self.eta[0]
             y = self.eta[1]
@@ -93,4 +119,4 @@ class ReVolt:
         vVertices = ( (self.getJ(use2D=True) @ self.vBox).T + np.tile(np.array([x, y]), (4, 1)) ).T
         pltLines = np.concatenate((vVertices, vVertices[:,0][:,np.newaxis]), axis=1)
 
-        plt.plot(pltLines[0,:], pltLines[1,:], color='blue')
+        plt.plot(pltLines[0,:], pltLines[1,:], color=color)

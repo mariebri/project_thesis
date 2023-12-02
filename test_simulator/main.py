@@ -1,26 +1,30 @@
-import revolt
 import numpy as np
 import matplotlib.pyplot as plt
-from control import trajectory
+
+from control import Control
+from revolt import ReVolt
+from functions import *
 from world import World
 
 if __name__ == '__main__':
-    h       = 0.1
-    T       = 50
-    x       = np.zeros(6)
+    h           = 0.1
+    ts          = 20
+    T_horizon   = 2500
 
-    vessel          = revolt.ReVolt(x=x)
     world           = World()
+    vessel          = ReVolt(x=np.concatenate((world.portA, np.zeros(3))))
+    control         = Control(vessel, world)
 
-    x0              = np.array([world.portA[0], world.portA[1], 0, 0, 0, 0])
-    u0              = x0
-    x_opt, u_opt    = trajectory(eta_des=np.array([world.portB[0], world.portB[1], 0]), x0=x0, u0=u0, h=h, vessel=vessel, T=T)
+    x_opt, u_opt = control.transit('A', 'B')
 
-    world.plotMap()
-    for i in range(int(T/h)):
-        #vessel.step(h, u_opt[:, i])
-        vessel.plot(eta=x_opt[:3, i+1])
-        #plt.pause(0.001)
+    world.plot(True)
+    for i in range(x_opt.shape[1]):
+        #x, u = control.getToEtaD(i) # <-- Doesn't work as of right now :)
+        vessel.plot()
+        vessel.plot(eta=x_opt[:3, i])
+        plt.pause(0.001)
 
-    plt.plot(x_opt[1,:], x_opt[0,:], color='green')
+    plt.plot(x_opt[0,:], x_opt[1,:], color='green')
+    print(x_opt[0,-1], x_opt[1,-1])
+
     plt.show()
