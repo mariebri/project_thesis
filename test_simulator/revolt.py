@@ -47,8 +47,8 @@ class ReVolt:
                                  ca.horzcat(0, 1, 0, 1, 0, 1),
                                  ca.horzcat(0, self.lx[0], self.ly[1], -self.lx[1], self.ly[2], -self.lx[2]))
 
-    def getJ(self, use2D=False):
-        psi = np.float32(self.eta[2])
+    def getJ(self, psi, use2D=False):
+        psi = float(psi)
         J = np.array([[np.cos(psi), -np.sin(psi), 0],
                       [np.sin(psi),  np.cos(psi), 0],
                       [          0,            0, 1]])
@@ -97,26 +97,26 @@ class ReVolt:
         """
         return self.getB(a) @ self.getF(u)
 
-    def step(self, h, u):
+    def step(self, h, u, eta=[], nu=[], optModel=False):
+        if not optModel:
+            eta = self.eta
+            nu = self.nu
+                  
         tau         = self.T_e @ self.K_e @ u
 
-        eta_dot     = self.getJ() @ self.nu
-        nu_dot      = np.linalg.solve(self.M, -(self.D + self.getC(self.nu)) @ self.nu + tau)
+        eta_dot     = self.getJ(eta[2]) @ nu
+        nu_dot      = np.linalg.solve(self.M, -(self.D + self.getC(nu)) @ nu + tau)
 
-        self.eta    = self.eta + h*eta_dot
-        self.nu     = self.nu + h*nu_dot
-        x           = np.concatenate((self.eta, self.nu), axis=0)
+        eta     = eta + h*eta_dot
+        nu      = nu + h*nu_dot
+        x       = np.concatenate((eta, nu), axis=0)
         return x
         
     def plot(self, eta=[], color='blue'):
         if eta == []:
-            x = self.eta[0]
-            y = self.eta[1]
-        else:
-            x = eta[0]
-            y = eta[1]
+            eta = self.eta
 
-        vVertices = ( (self.getJ(use2D=True) @ self.vBox).T + np.tile(np.array([x, y]), (4, 1)) ).T
+        vVertices = ( (self.getJ(eta[2], use2D=True) @ self.vBox).T + np.tile(np.array([eta[0], eta[1]]), (4, 1)) ).T
         pltLines = np.concatenate((vVertices, vVertices[:,0][:,np.newaxis]), axis=1)
 
         plt.plot(pltLines[0,:], pltLines[1,:], color=color)

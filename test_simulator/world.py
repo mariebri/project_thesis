@@ -7,7 +7,7 @@ class World:
     def __init__(self):
         # Ports
         self.portA = np.array([888, 35, np.deg2rad(-20)])
-        self.portB = np.array([767, 466, np.deg2rad(-120)])
+        self.portB = np.array([767, 466, np.deg2rad(-70)])
         self.portC = np.array([353, 682, np.deg2rad(120)])
         self.portD = np.array([39, 777, np.deg2rad(-120)])
         self.portE = np.array([470, 1020, np.deg2rad(-120)])
@@ -26,7 +26,7 @@ class World:
         self.initializeWorld()
 
     def initializeWorld(self):
-        self.addSet(np.array([[900,0], [705,425], [788,448], [1008,0]]), 'A-Transit', False)
+        self.addSet(np.array([[905,0], [724,431], [788,448], [1008,0]]), 'A-Transit', False)
         self.addSet(np.array([[893,15], [920,22], [910,58], [880,50]]), 'A', True, self.portA)
         self.addSet(np.array([[724,388], [805,407], [677,642], [652,618]]), 'B-Transit', False)
         self.addSet(np.array([[779,451], [756,445], [747,463], [768,470]]), 'B', True, self.portB)
@@ -42,21 +42,21 @@ class World:
         self.addSet(np.array([[616,772], [594,761], [455, 1044], [499, 1044]]), 'E-Transit', False)
         self.addSet(np.array([[473,1007], [486,1014], [479,1035], [461,1030]]), 'E', True, self.portE)
 
-        self.addConnection('A', 'A-Transit', np.array([900,40]), np.deg2rad(-90), np.deg2rad(120))
-        self.addConnection('B', 'B-Transit', np.array([756,459]), np.deg2rad(180), np.deg2rad(-20))
-        self.addConnection('C', 'C-Transit', np.array([352,685]), np.deg2rad(-90), np.deg2rad(90))
-        self.addConnection('D', 'D-Transit', np.array([37,771]), np.deg2rad(60), np.deg2rad(-120))
-        self.addConnection('E', 'E-Transit', np.array([477,1019]), np.deg2rad(60), np.deg2rad(-120))
-        self.addConnection('A-Transit', 'B-Transit', np.array([750,421]), np.deg2rad(-45), np.deg2rad(100))
-        self.addConnection('B-Transit', 'B-Cross', np.array([670, 615]), np.deg2rad(-120), np.deg2rad(60))
-        self.addConnection('B-Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(-120), np.deg2rad(45))
-        self.addConnection('Cross', 'B-Cross', np.array([605,756]), 0, 0)
-        self.addConnection('Cross', 'E-Transit', np.array([598, 785]), 0, 0)
-        self.addConnection('Cross', 'Cross-C1', np.array([567,752]), 0, 0)
-        self.addConnection('Cross-C1', 'Cross-C2', np.array([527,731]), 0, 0)
-        self.addConnection('Cross-C2', 'C-Transit', np.array([462,701]), 0, 0)
-        self.addConnection('C-Transit', 'D-Cross', np.array([335,689]), 0, 0)
-        self.addConnection('D-Cross', 'D-Transit', np.array([150,704]), 0, 0)
+        self.addConnection('A', 'A-Transit', np.array([900,40]), np.deg2rad(70), np.deg2rad(-120))
+        self.addConnection('B', 'B-Transit', np.array([756,459]), np.deg2rad(160), np.deg2rad(20))
+        self.addConnection('C', 'C-Transit', np.array([352,685]), np.deg2rad(90), np.deg2rad(-90))
+        self.addConnection('D', 'D-Transit', np.array([37,771]), np.deg2rad(-60), np.deg2rad(60))
+        self.addConnection('E', 'E-Transit', np.array([477,1019]), np.deg2rad(-60), np.deg2rad(120))
+        self.addConnection('A-Transit', 'B-Transit', np.array([750,421]), np.deg2rad(110), np.deg2rad(-80))
+        self.addConnection('B-Transit', 'B-Cross', np.array([670, 615]), np.deg2rad(120), np.deg2rad(-60))
+        self.addConnection('Cross', 'B-Cross', np.array([605,756]), np.deg2rad(-60), np.deg2rad(110))
+        self.addConnection('B-Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(100), np.deg2rad(-60))
+        self.addConnection('Cross', 'Cross-C1', np.array([567,752]), np.deg2rad(170), np.deg2rad(-10))
+        self.addConnection('Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(120), np.deg2rad(-60))
+        self.addConnection('Cross-C1', 'Cross-C2', np.array([527,731]), np.deg2rad(-140), np.deg2rad(40))
+        self.addConnection('Cross-C2', 'C-Transit', np.array([462,701]), np.deg2rad(-160), np.deg2rad(20))
+        self.addConnection('C-Transit', 'D-Cross', np.array([335,689]), np.deg2rad(170), np.deg2rad(-10))
+        self.addConnection('D-Cross', 'D-Transit', np.array([150,704]), np.deg2rad(150), np.deg2rad(-10))
 
     def plotMap(self):
         img = np.asarray(Image.open('../Map/Map_flight.png'))
@@ -133,14 +133,18 @@ class World:
         self.connectionPoints[index_from].append(np.concatenate((connection_point, np.array([heading_to]))))
         self.connectionPoints[index_to].append(np.concatenate((connection_point, np.array([heading_from]))))
 
-    def findPath(self, start, goal, last_index = -1):
+    def findPath(self, start, goal, counter=0, last_index=-1):
         index_start = self.setNames.index(start)
         for connected_index in self.connectionIndices[index_start]:
+            counter += 1
+            if counter > 20:
+                return []
+            
             if last_index == -1 or connected_index != last_index:
                 new_start = self.setNames[connected_index]
                 if new_start == goal:
                     return [new_start]
-                path = self.findPath(new_start, goal, last_index=index_start)
+                path = self.findPath(new_start, goal, counter, last_index=index_start)
                 if path != []:
                     return [new_start] + path
         return []

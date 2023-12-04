@@ -1,5 +1,6 @@
 import casadi as ca
 import numpy as np
+import dubins
 from revolt import ReVolt
 
 def ssa(angle):
@@ -51,7 +52,7 @@ def trajectory(eta_des, x0, u0, harbor, vessel: ReVolt, T=20, h=2):
     v_d     = ca.SX.sym('v_d')
     r_d     = ca.SX.sym('r_d')
     nu_d    = ca.vertcat(u_d, v_d, r_d)
-    nu_des  = np.array([3,0,0])  # If transit?
+    nu_des  = np.array([0,0,0])  # If transit?
 
     # Symbolic input
     f1x = ca.SX.sym('f1x')
@@ -254,7 +255,7 @@ def thrustAllocation(tau, vessel: ReVolt, unconstrained=True):
 def PIDcontroller(eta_p, nu_p, eta_tilde_int, vessel: ReVolt):
     eta     = vessel.eta
     nu      = vessel.nu
-    J       = vessel.getJ()
+    J       = vessel.getJ(psi=eta[2])
 
     Kp      = np.diag([1000, 1000, 10000])
     Kd      = np.diag([1000, 1000, 15000])
@@ -274,3 +275,17 @@ def PIDcontroller(eta_p, nu_p, eta_tilde_int, vessel: ReVolt):
 
     tau_fb = - J.T @ (Kp @ eta_tilde + Kd @ eta_tilde_dot + int_term)
     return tau_fb, eta_tilde
+
+def dubinsPath(eta_start, eta_end, curvature=1.0, step=5):
+    path        = dubins.shortest_path(eta_start, eta_end, curvature)
+    eta_d, _    = path.sample_many(step)
+
+    # Make eta_d a 3xN matrix
+    eta         = np.zeros((3, len(eta_d)))  
+    for i in range(len(eta_d)):
+        e       = eta_d[i]
+        eta[0,i]= e[0]
+        eta[1,i]= e[1]
+        eta[2,i]= ssa(e[2])
+    
+    return eta

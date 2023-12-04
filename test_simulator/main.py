@@ -12,19 +12,15 @@ if __name__ == '__main__':
     T_horizon   = 2500
 
     world           = World()
-    vessel          = ReVolt(x=np.concatenate((world.portA, np.zeros(3))))
+    vessel          = ReVolt(x=np.concatenate((world.portD, np.zeros(3))))
     control         = Control(vessel, world)
 
-    x_opt, u_opt = control.transit('A', 'B')
+    eta_d = control.transitDubins('D', 'A')
 
     world.plot(True)
-    for i in range(x_opt.shape[1]):
-        #x, u = control.getToEtaD(i) # <-- Doesn't work as of right now :)
-        vessel.plot()
-        vessel.plot(eta=x_opt[:3, i])
-        plt.pause(0.001)
+    for i in range(eta_d.shape[1]):
+        vessel.plot(eta_d[:,i], color='yellow')
+        plt.pause(0.01)
 
-    plt.plot(x_opt[0,:], x_opt[1,:], color='green')
-    print(x_opt[0,-1], x_opt[1,-1])
-
+    plt.plot(eta_d[0,:], eta_d[1,:], color='green')
     plt.show()
