@@ -6,11 +6,11 @@ from scipy.spatial import ConvexHull
 class World:
     def __init__(self):
         # Ports
-        self.portA = np.array([888, 35, np.deg2rad(-20)])
-        self.portB = np.array([767, 466, np.deg2rad(-70)])
-        self.portC = np.array([353, 682, np.deg2rad(120)])
-        self.portD = np.array([39, 777, np.deg2rad(-120)])
-        self.portE = np.array([470, 1020, np.deg2rad(-120)])
+        self.portA = np.array([888, 35, np.deg2rad(30)])
+        self.portB = np.array([767, 466, np.deg2rad(20)])
+        self.portC = np.array([353, 679, np.deg2rad(80)])
+        self.portD = np.array([39, 780, np.deg2rad(80)])
+        self.portE = np.array([470, 1020, np.deg2rad(140)])
 
         # Operating Area
         self.nSets = 0
@@ -42,6 +42,17 @@ class World:
         self.addSet(np.array([[616,772], [594,761], [455, 1044], [499, 1044]]), 'E-Transit', False)
         self.addSet(np.array([[473,1007], [486,1014], [479,1035], [461,1030]]), 'E', True, self.portE)
 
+        self.addSet(np.array([[893,15], [920,22], [910,58], [880,50]]), 'A-port', False)
+        self.addSet(np.array([[779,451], [756,445], [747,463], [768,470]]), 'B-port', False)
+        self.addSet(np.array([[344,677], [344,690], [360,692], [361,680]]), 'C-port', False)
+        self.addSet(np.array([[29,783], [22,765], [43,759], [48,773]]), 'D-port', False)
+        self.addSet(np.array([[473,1007], [486,1014], [479,1035], [461,1030]]), 'E-port', False)
+        self.addConnection('A', 'A-port', self.portA[:2], self.portA[2], np.deg2rad(30))
+        self.addConnection('B', 'B-port', self.portB[:2], self.portB[2], np.deg2rad(-140))
+        self.addConnection('C', 'C-port', self.portC[:2], self.portC[2], np.deg2rad(90))
+        self.addConnection('D', 'D-port', self.portD[:2], self.portD[2], np.deg2rad(-60))
+        self.addConnection('E', 'E-port', self.portE[:2], self.portE[2], np.deg2rad(-70))
+
         self.addConnection('A', 'A-Transit', np.array([900,40]), np.deg2rad(70), np.deg2rad(-120))
         self.addConnection('B', 'B-Transit', np.array([756,459]), np.deg2rad(160), np.deg2rad(20))
         self.addConnection('C', 'C-Transit', np.array([352,685]), np.deg2rad(90), np.deg2rad(-90))
@@ -59,7 +70,7 @@ class World:
         self.addConnection('D-Cross', 'D-Transit', np.array([150,704]), np.deg2rad(150), np.deg2rad(-10))
 
     def plotMap(self):
-        img = np.asarray(Image.open('../Map/Map_flight.png'))
+        img = np.asarray(Image.open('./Map/Map_flight.png'))
         plt.imshow(img)
         plt.plot(self.portA[0], self.portA[1], marker="o", markersize=5)
         plt.plot(self.portB[0], self.portB[1], marker="o", markersize=5)

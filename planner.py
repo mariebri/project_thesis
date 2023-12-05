@@ -7,13 +7,13 @@ import copy
 import math
 import pyplanning as pp
 from utils import *
-from vessel import *
+from vessel_state import *
 from replanner import Replanner
 
 class Action:
-    def __init__(self, action, predicates, addEffects, delEffects, planner: PlannerType, start=0.0, dur=0.0):
+    def __init__(self, action, parameters, addEffects, delEffects, planner: PlannerType, start=0.0, dur=0.0):
         self.action = action
-        self.predicates = predicates
+        self.parameters = parameters
         self.addEffects = addEffects
         self.delEffects = delEffects
         self.planner = planner
@@ -23,8 +23,8 @@ class Action:
     def getAction(self):
         return self.action
     
-    def getPredicates(self):
-        return self.predicates
+    def getParameters(self):
+        return self.parameters
     
     def getEffects(self):
         return self.addEffects, self.delEffects
@@ -43,21 +43,16 @@ class Planner:
         self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan, scenario=scenario)
         self.planner                = planner
         self.algorithm              = algorithm
+        self.replan                 = replan
+        self.fuelLevel              = fuelLevel
         self.scenario               = scenario
 
         self.plan, self.compTime    = self.computePlan()
         self.actions                = self.getActionsFromPlan()
-        self.init, self.goal        = self.getPredicates()
-
-        self.remainingActions       = copy.deepcopy(self.actions)
-        self.finishedActions        = []
-        self.allActions             = self.remainingActions + self.finishedActions
-
-        self.vessel = Vessel(fuelLevel=fuelLevel, replan=replan, scenario=self.scenario)
 
     def printPlan(self):
         for a in self.actions:
-            print(a.getStartTime(), ":", a.getAction(), a.getPredicates())
+            print(a.getStartTime(), ":", a.getAction(), a.getParameters())
 
     def computePlan(self):
         start = time.time()
@@ -129,10 +124,10 @@ class Planner:
                     start = l[0].strip()
                     actionLine = l[1].split()
                     action = actionLine[0]
-                    predicates = actionLine[1:]
+                    parameters = actionLine[1:]
                     dur = l[2].strip()
-                    addEffects, delEffects = self.getEffects(action, predicates)
-                    action = Action(action, predicates, addEffects, delEffects, self.planner, start, dur)
+                    addEffects, delEffects = self.getEffects(action, parameters)
+                    action = Action(action, parameters, addEffects, delEffects, self.planner, start, dur)
                     actions.append(action)
 
         elif self.planner == PlannerType.GRAPHPLAN:
@@ -141,13 +136,13 @@ class Planner:
                 for line in self.plan[i]:
                     #line = self.plan[i].pop()
                     action = line.action.name
-                    predicates = [str(o) for o in line.objects]
-                    addEffects, delEffects = self.getEffects(action, predicates)
-                    action = Action(action, predicates, addEffects, delEffects, self.planner, start=i)
+                    parameters = [str(o) for o in line.objects]
+                    addEffects, delEffects = self.getEffects(action, parameters)
+                    action = Action(action, parameters, addEffects, delEffects, self.planner, start=i)
                     actions.append(action)
         return actions
 
-    def getPredicates(self):
+    def getPredicates(self, startPos=False):
         # Reads from the problem file and returns a list of all true initial and goal predicates
         initPred, goalPred = [], []
 
@@ -174,9 +169,15 @@ class Planner:
                         break
                     goalPred.append(lines[j])
 
+        if startPos:
+            for pred in initPred:
+                if "vesselat" in pred:
+                    port = pred[2]
+                    return initPred, goalPred, port
+
         return initPred, goalPred
     
-    def getEffects(self, action, predicates):
+    def getEffects(self, action, param):
         # Reads from the domain file and returns a list of all add and del effects
         addEffects, delEffects = [], []
 
@@ -214,26 +215,26 @@ class Planner:
                 if l == "":
                     break
 
-                # Finding predicates
-                predString = ""
+                # Finding parameters
+                paramString = ""
                 elem = l.split(' ')
                 for e in elem:
                     if "?" in e:
-                        predIndex = parameters.index(e)
-                        predString = predString + " " + predicates[predIndex]
+                        paramIndex = parameters.index(e)
+                        paramString = paramString + " " + param[paramIndex]
 
                 if "not" in l:
                     effect = elem[3]
                     if "at start" in l:
-                        delAtStart.append(effect + predString)
+                        delAtStart.append(effect + paramString)
                     elif "at end" in l:
-                        delAtEnd.append(effect + predString)
+                        delAtEnd.append(effect + paramString)
                 else:
                     effect = elem[2]
                     if "at start" in l:
-                        addAtStart.append(effect + predString)
+                        addAtStart.append(effect + paramString)
                     elif "at end" in l:
-                        addAtEnd.append(effect + predString)
+                        addAtEnd.append(effect + paramString)
 
             addEffects = [addAtStart, addAtEnd]
             delEffects = [delAtStart, delAtEnd]
@@ -245,172 +246,19 @@ class Planner:
                 if l == "":
                     break
                 
-                # Finding predicates
-                predString = ""
+                # Finding parameters
+                paramString = ""
                 elem = l.split(' ')
                 for e in elem:
                     if "?" in e:
-                        predIndex = parameters.index(e)
-                        predString = predString + " " + predicates[predIndex]
+                        paramIndex = parameters.index(e)
+                        paramString = paramString + " " + param[paramIndex]
 
                 if "not" in l:
                     effect = elem[1]
-                    delEffects.append(effect + predString)
+                    delEffects.append(effect + paramString)
                 else:
                     effect = elem[0]
-                    addEffects.append(effect + predString)
+                    addEffects.append(effect + paramString)
 
         return addEffects, delEffects
-
-    def executePlan(self):
-        actions = self.allActions
-        for a in actions:
-            try:
-                self.executeAction(a)
-            except KeyboardInterrupt:
-                print('\nReplanning')
-                replanner = Replanner(self.init, self.goal, self.planner, self.scenario)
-
-                if self.vessel.low_fuel:
-                    print('Low fuel...')
-                    print('Planning for an additional fuel stop')
-                    replanner.makeProblemFile(low_fuel=True, port=self.vessel.port)
-                    os.system('python3 main.py True %s' % self.vessel.fuelLevel)
-                    sys.exit()
-                
-                replanner.makeProblemFile()
-                os.system('python3 main.py True 100')
-                sys.exit()
-            self.updateActions(a)
-            self.updatePredEnd(a)
-
-    def executeAction(self, a: Action):
-        action  = a.getAction()
-        pred    = a.getPredicates()
-        start   = a.getStartTime()
-
-        if action == "transit":
-            portFrom    = pred[0]
-            portTo      = pred[1]
-            print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
-
-            self.vessel.updateState(State.IN_TRANSIT, portTo)
-            self.updatePredStart(a)
-
-            for i in range(math.floor(a.dur/10)):
-                self.vessel.updateFuelLevel(-1)
-                time.sleep(0.5)
-
-        elif action == "undock":
-            port = pred[0]
-            print("At %f\n Undocking at %s\n" % (start, port))
-
-            self.vessel.updateState(State.UNDOCKING, port)
-            self.updatePredStart(a)
-
-            for i in range(1):
-                self.vessel.updateFuelLevel(-5)
-                time.sleep(1)
-
-        elif action == "dock":
-            port = pred[0]
-            print("At %f\n Docking at %s\n" % (start, port))
-
-            self.vessel.updateState(State.DOCKING, port)
-            self.updatePredStart(a)
-
-            for i in range(1):
-                self.vessel.updateFuelLevel(-5)
-                time.sleep(1)
-
-        elif action == "load":
-            port = pred[0]
-            goods = pred[1]
-            print("At %f\n Loading %s at %s\n" % (start, goods, port))
-
-            self.vessel.updateState(State.DOCKED, port)
-            self.updatePredStart(a)
-
-            time.sleep(1)
-
-        elif action == "unload":
-            port = pred[0]
-            goods = pred[1]
-            print("At %f\n Unloading %s at %s\n" % (start, goods, port))
-
-            self.vessel.updateState(State.DOCKED, port)
-            self.updatePredStart(a)
-
-            time.sleep(1)
-
-        elif action == "fuelling":
-            port = pred[0]
-            print("At %f\n Fuelling at %s\n" % (start, port))
-
-            self.vessel.updateState(State.DOCKED, port)
-            self.updatePredStart(a)
-
-            for i in range(5):
-                self.vessel.updateFuelLevel(20)
-                time.sleep(1)
-
-        else:
-            raise Exception("Not a valid action name")
-        
-    def updateActions(self, finishedAction: Action):
-        self.remainingActions.remove(finishedAction)
-        self.finishedActions.append(finishedAction)
-
-    def updatePredStart(self, startedAction: Action):
-        if self.planner == PlannerType.TEMPORAL:
-            # Only used for temporal planners
-            addEffects, delEffects = startedAction.getEffects()
-            addEffects = addEffects[0]
-            delEffects = delEffects[0]
-
-            # Update
-            effInPred = [False for i in range(len(addEffects))]
-            for pred in self.init:
-                for i in range(len(addEffects)):
-                    if pred == addEffects[i]:
-                        effInPred[i] = True
-                for eff in delEffects:
-                    if pred == eff:
-                        self.init.remove(pred)
-            
-            for i in range(len(effInPred)):
-                if not effInPred[i]:
-                    self.init.append(addEffects[i])
-
-            for pred in self.goal:
-                for eff in addEffects:
-                    if pred == eff:
-                        self.goal.remove(pred)
-        else:
-            return
-
-    def updatePredEnd(self, finishedAction: Action):
-        addEffects, delEffects = finishedAction.getEffects()
-
-        if self.planner == PlannerType.TEMPORAL:
-            addEffects = addEffects[1]
-            delEffects = delEffects[1]
-
-        # Update
-        effInPred = [False for i in range(len(addEffects))]
-        for pred in self.init:
-            for i in range(len(addEffects)):
-                if pred == addEffects[i]:
-                    effInPred[i] = True
-            for eff in delEffects:
-                if pred == eff:
-                    self.init.remove(pred)
-        
-        for i in range(len(effInPred)):
-            if not effInPred[i]:
-                self.init.append(addEffects[i])
-
-        for pred in self.goal:
-            for eff in addEffects:
-                if pred == eff:
-                    self.goal.remove(pred)

@@ -1,19 +1,21 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 from world import World
 from revolt import ReVolt
-from functions import *
+from utils import *
 
 class Control:
     def __init__(self, vessel: ReVolt, world: World):
         self.T  = 2500
         self.ts = 20
-        self.h  = 0.1
+        self.h  = 0.4
         self.eta_tilde_int = np.zeros((3,1))
 
         self.vessel = vessel
         self.world  = world
 
-    def transit(self, portFrom, portTo):
+    def transit_old(self, portFrom, portTo):
         x0, u0  = self.vessel.x, self.vessel.u
         path    = self.world.findPath(portFrom, portTo)
         path.insert(0, portFrom)
@@ -45,11 +47,11 @@ class Control:
             tau, eta_tilde  = PIDcontroller(eta_des, nu_des, eta_tilde_int, self.vessel)
             eta_tilde_int   = eta_tilde_int + h*eta_tilde
             u, a            = thrustAllocation(tau, self.vessel)
-            eta, nu         = self.vessel.step(h, u, a)
-        
+            _, _            = self.vessel.step(h, u, a)
+
         return steps
     
-    def transitDubins(self, portFrom, portTo):
+    def getDubins(self, portFrom, portTo, step=5):
         path    = self.world.findPath(portFrom, portTo)
         path.insert(0, portFrom)
         eta0    = self.vessel.eta
@@ -57,7 +59,7 @@ class Control:
         for i in range(len(path)-1):
             print('Computing path from %s to %s' % (path[i], path[i+1]))
             eta_des, _  = self.world.getTransitInfo(path[i], path[i+1])
-            eta         = dubinsPath(eta_start=eta0, eta_end=eta_des)
+            eta         = dubinsPath(eta_start=eta0, eta_end=eta_des, step=step)
 
             if 'eta_opt' in locals():
                 eta_opt = np.concatenate((eta_opt, eta), axis=1)
@@ -66,3 +68,15 @@ class Control:
             eta0 = eta_opt[:,-1]
 
         return eta_opt
+    
+    def moveVessel(self, portFrom, portTo, time):
+        eta_d   = self.getDubins(portFrom, portTo)
+        for i in range(eta_d.shape[1]):
+            eta_des = eta_d[:,i]
+            steps   = self.getToEta(eta_des, self.h)
+            time   += steps*self.h
+
+            self.vessel.plot(eta_des, color='yellow')
+            self.vessel.plot()
+            plt.pause(0.001)
+        return time

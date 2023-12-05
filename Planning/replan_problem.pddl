@@ -28,7 +28,7 @@
         (= (length portd portc) 438)
         (= (length portc porte) 685)
         (= (length porte portc) 685)
-        (= (speed vessel0) 3)
+        (= (speed vessel0) 1)
         (onboard goodsae vessel0)
         (onboard goodsbd vessel0)
         (vesselat vessel0 portc)

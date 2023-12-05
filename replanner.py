@@ -44,7 +44,7 @@ class Replanner():
             else:
                 initLines.append("        (" + state + ")\n")
         if low_fuel:
-            initLines.append("        (fuelteamat fuelteam0 " + port + ")\n")
+            initLines.append("        (fuelteamat fuelteam0 port" + port.lower() + ")\n")
         initLines.append("    )\n")
         initLines.append("\n")
 

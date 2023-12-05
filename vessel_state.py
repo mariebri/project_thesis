@@ -1,9 +1,6 @@
-from enum import Enum
-from planner import PlannerType
+from utils import PlannerType, State
 
-State = Enum('State', ['DOCKED', 'DOCKING', 'UNDOCKING', 'IN_TRANSIT'])
-
-class Vessel:
+class VesselState:
 
     def __init__(self, state=State.DOCKED, fuelLevel=100, replan=False, scenario=1):
         self.state      = state
