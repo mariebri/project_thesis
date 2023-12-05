@@ -179,13 +179,19 @@ class World:
         index_area = self.setNames.index(area)
         return self.convexIneqs[index_area]
 
-    def plot(self, showConvex=False):
+    def plot(self, showConvex=False, showInd=False):
         self.plotMap()
-        if showConvex:       
+        if showConvex:      
             for convex_set in self.convexSets:
                 convex_set_wrapped = np.concatenate((convex_set, convex_set[0,:][np.newaxis,:]), axis=0)
                 plt.plot(convex_set_wrapped[:,0], convex_set_wrapped[:,1], color='red')
 
+            for connection_point in self.connectionPoints:
+                if len(connection_point) > 0:
+                    for p in connection_point:
+                        plt.plot(p[0], p[1], 'r+')
+
+        if showInd and not showConvex:
             for connection_point in self.connectionPoints:
                 if len(connection_point) > 0:
                     for p in connection_point:

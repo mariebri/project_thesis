@@ -237,20 +237,33 @@ def trajectory(eta_des, x0, u0, harbor, vessel: ReVolt, T=20, h=2):
 
 def thrustAllocation(tau, vessel: ReVolt, unconstrained=True):
     """
-    Goal: Return u_e = [u1x, u1y, u2x, u2y, u3x, u3y]
+    Goal: Return u = [u1, u2, u3], a = [a1, a2, a3]
 
     Unconstrained: u_e = inv(K_e) @ T_pseudoinv @ tau
+    where u_e = [u1x, u1y, u2x, u2y, u3x, u3y]
     """
 
     if unconstrained:
-        T_e, K_e        = vessel.T_e, vessel.K_e
-        T_pseudoinv     = T_e.T @ np.linalg.inv(T_e @ T_e.T)
-        u_e             = np.linalg.inv(K_e) @ T_pseudoinv @ tau
+        Te, Ke      = vessel.T_e, vessel.K_e
+        B           = Te @ Ke
+        B_pseudoinv = B.T @ np.linalg.inv(B @ B.T)
+        #T_pseudoinv = Te.T @ np.linalg.inv(Te @ Te.T)
+        #u_e         = np.linalg.inv(Ke) @ T_pseudoinv @ tau
+        u_e         = B_pseudoinv @ tau
     else:
         # TODO
         u_e = np.zeros(6)
 
-    return u_e
+    u1  = np.sqrt(u_e[0]**2 + u_e[1]**2)
+    u2  = np.sqrt(u_e[2]**2 + u_e[3]**2)
+    u3  = np.sqrt(u_e[4]**2 + u_e[5]**2)
+    a1  = np.arctan2(u_e[1], u_e[0])
+    a2  = np.arctan2(u_e[3], u_e[2])
+    a3  = np.arctan2(u_e[5], u_e[4])
+    u   = np.array([u1, u2, u3])
+    a   = np.array([a1, a2, a3])
+
+    return u, a
 
 def PIDcontroller(eta_p, nu_p, eta_tilde_int, vessel: ReVolt):
     eta     = vessel.eta
@@ -289,3 +302,8 @@ def dubinsPath(eta_start, eta_end, curvature=1.0, step=5):
         eta[2,i]= ssa(e[2])
     
     return eta
+
+def inProximity(eta, eta_d):
+    if np.linalg.norm(eta - eta_d) <= 0.1:
+        return True
+    return False

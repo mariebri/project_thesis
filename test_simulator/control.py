@@ -35,18 +35,19 @@ class Control:
 
         return x_opt, u_opt
     
-    def getToEtaD(self, i):
-        for i in range(int(self.ts/self.h)):
-            eta_p               = self.x_opt[:3, i]
-            nu_p                = self.x_opt[3:, i]
-            uf_p                = self.u_opt[:, i]
-            tau_ff              = self.vessel.T_e @ self.vessel.K_e @ uf_p
-            tau_fb, eta_tilde   = PIDcontroller(eta_p, nu_p, self.eta_tilde_int, self.vessel)
-            self.eta_tilde_int  = self.eta_tilde_int + self.ts*eta_tilde
+    def getToEta(self, eta_des, h):
+        steps           = 0
+        nu_des          = np.array([0, 0, 0])
+        eta_tilde_int   = np.zeros((3,1))
 
-            u = thrustAllocation(tau_ff+tau_fb, self.vessel)
-            x = self.vessel.step(h=0.1, u=uf_p, eta=eta_p, nu=nu_p, optModel=True)
-        return x, u
+        while not inProximity(self.vessel.eta, eta_des):
+            steps          += 1
+            tau, eta_tilde  = PIDcontroller(eta_des, nu_des, eta_tilde_int, self.vessel)
+            eta_tilde_int   = eta_tilde_int + h*eta_tilde
+            u, a            = thrustAllocation(tau, self.vessel)
+            eta, nu         = self.vessel.step(h, u, a)
+        
+        return steps
     
     def transitDubins(self, portFrom, portTo):
         path    = self.world.findPath(portFrom, portTo)

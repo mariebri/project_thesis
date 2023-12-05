@@ -31,7 +31,9 @@ class ReVolt:
         self.tau_max= [69, 30, 80]
         self.T_max  = [ 25,  25,  14]
         self.T_min  = [-25, -25, -6.1]
-        self.T_e    = np.array([[1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1], [0, self.lx[0], self.ly[1], -self.lx[1], self.ly[2], -self.lx[2]]])
+        self.T_e    = np.array([[1, 0, 1, 0, 1, 0],
+                                [0, 1, 0, 1, 0, 1],
+                                [-self.ly[0], self.lx[0], -self.ly[1], self.lx[1], 0, self.lx[2]]])
         self.K      = np.diag([0.00205, 0.00205, 0.0009])
         self.K_e    = np.diag([0.00205, 0.00205, 0.00205, 0.00205, 0.0009, 0.0009])
 
@@ -70,12 +72,12 @@ class ReVolt:
 
     def getB(self, a):
         """
-        Returns tau = B*u, where a=alpha
+        Returns B(a) (or T(a)), where a=alpha
         """
         a1, a2, a3      = a[0], a[1], a[2]
         return np.array([[    np.cos(a1),                      np.cos(a2),                    np.cos(a3)],
                          [    np.sin(a1),                      np.sin(a2),                    np.sin(a3)],
-                         [-self.ly[0]*np.cos(a1)+self.lx[0]*np.sin(a1),   -self.ly[1]*np.cos(a2)+self.lx[1]*np.sin(a2), -self.ly[2]*np.cos(a3)+self.lx[2]*np.sin(a3)]])
+                         [-self.ly[0]*np.cos(a1)+self.lx[0]*np.sin(a1),   -self.ly[1]*np.cos(a2)+self.lx[1]*np.sin(a2), self.lx[2]*np.sin(a3)]]).reshape((3,3))
 
     def getF(self, u):
         """
@@ -85,32 +87,46 @@ class ReVolt:
         """
         if u[2] >= 0:
             F2 = float(0.001518 * abs(u[2]) * u[2])
-        else: 
+        else:
             F2 = float(0.0006172 * abs(u[2]) * u[2])
+            
         return np.array([[float(0.0027 * abs(u[0]) * u[0])],
                          [float(0.0027 * abs(u[1]) * u[1])],
                          [F2]])
 
-    def getTau(self, a, u):
+    def getTau(self, u, a):
         """
         Calculates tau = B(a)*F(u)
         """
-        return self.getB(a) @ self.getF(u)
+        tau = self.getB(a) @ self.getF(u)
 
-    def step(self, h, u, eta=[], nu=[], optModel=False):
+        # Saturation
+        for i in range(len(tau)):
+            if tau[i] > self.T_max[i]:
+                tau[i] = self.T_max[i]
+            if tau[i] < self.T_min[i]:
+                tau[i] = self.T_min[i]
+        
+        return tau
+
+    def step(self, h, u, a, eta=[], nu=[], optModel=False):
         if not optModel:
             eta = self.eta
-            nu = self.nu
+            nu  = self.nu
                   
-        tau         = self.T_e @ self.K_e @ u
+        tau         = self.getTau(u, a) #self.T_e @ self.K_e @ u
 
         eta_dot     = self.getJ(eta[2]) @ nu
-        nu_dot      = np.linalg.solve(self.M, -(self.D + self.getC(nu)) @ nu + tau)
+        nu_dot      = (np.linalg.solve(self.M, -(self.D + self.getC(nu)) @ nu[:,np.newaxis] + tau)).reshape(3)
 
-        eta     = eta + h*eta_dot
-        nu      = nu + h*nu_dot
-        x       = np.concatenate((eta, nu), axis=0)
-        return x
+        if optModel:
+            eta     = eta + h*eta_dot
+            nu      = nu + h*nu_dot
+            return eta, nu
+        else:
+            self.eta    = eta + h*eta_dot
+            self.nu     = nu + h*nu_dot
+            return self.eta, self.nu
         
     def plot(self, eta=[], color='blue'):
         if eta == []:
