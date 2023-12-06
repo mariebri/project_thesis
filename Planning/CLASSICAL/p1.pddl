@@ -4,13 +4,13 @@
         porta portb portc portd porte - port
         goodsae goodsbd goodscb - goods
         tank0 - tank
-        fuelteam0 - fuelteam
+        chargeteam0 - chargeteam
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
-        (fuelteamat fuelteam0 portd)
+        (chargeteamat chargeteam0 portd)
         (goodsat goodsae porta)
         (goodsat goodsbd portb)
         (goodsat goodscb portc)

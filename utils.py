@@ -33,7 +33,7 @@ def getDomainProblemFiles(plannerType: PlannerType, scenario=1, replan=False):
     return domainFile, problemFile
 
 def getPortName(portFrom: str, portTo="", state=State.IN_TRANSIT):
-    portFrom    = (portFrom.strip('port')).upper()
+    portFrom    = (portFrom.strip('-port')).upper()
     if portTo != "":
         portTo      = (portTo.strip('port')).upper()
     

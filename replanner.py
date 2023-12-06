@@ -7,9 +7,9 @@ class Replanner():
         self.planner    = planner
         self.scenario   = scenario
 
-        self.replanFile     = '/home/marie/project_thesis/Planning/replan_problem.pddl'
+        self.replanFile     = '/home/marie/project_thesis/Planning/p_replan.pddl'
 
-    def makeProblemFile(self, low_fuel=False, port="porta"):
+    def makeProblemFile(self, low_battery=False, port="A"):
         f   = open(self.replanFile, "w")
         _, problemFile = getDomainProblemFiles(self.planner, replan=False, scenario=self.scenario)
         fPF = open(problemFile, "r")
@@ -43,13 +43,13 @@ class Replanner():
                 initLines.append("        (" + state + ")\n")
             else:
                 initLines.append("        (" + state + ")\n")
-        if low_fuel:
-            initLines.append("        (fuelteamat fuelteam0 port" + port.lower() + ")\n")
+        if low_battery:
+            initLines.append("        (chargeteamat chargeteam0 port" + port.lower() + ")\n")
         initLines.append("    )\n")
         initLines.append("\n")
 
         goalLines       = ["    (:goal (and\n"]
-        if low_fuel:
+        if low_battery:
             goalLines.append("        (fulltank tank0)\n")
 
         for state in self.goal:

@@ -39,12 +39,12 @@ class Action:
         return self.start + self.dur
 
 class Planner:
-    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, fuelLevel=100, scenario=1):
+    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, battery=100, scenario=1):
         self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan, scenario=scenario)
         self.planner                = planner
         self.algorithm              = algorithm
         self.replan                 = replan
-        self.fuelLevel              = fuelLevel
+        self.battery                = battery
         self.scenario               = scenario
 
         self.plan, self.compTime    = self.computePlan()

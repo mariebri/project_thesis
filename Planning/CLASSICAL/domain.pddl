@@ -5,13 +5,13 @@
         port
         goods
         tank
-        fuelteam
+        chargeteam
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
         (goodsat ?g - goods ?p - port)
-        (fuelteamat ?f - fuelteam ?p - port)
+        (chargeteamat ?c - chargeteam ?p - port)
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
@@ -79,10 +79,10 @@
         )
     )
 
-    (:action fuelling
-        :parameters (?p - port ?v - vessel ?t - tank ?f - fuelteam)
+    (:action charging
+        :parameters (?p - port ?v - vessel ?t - tank ?c - chargeteam)
         :precondition (and
-            (fuelteamat ?f ?p)
+            (chargeteamat ?c ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
         )

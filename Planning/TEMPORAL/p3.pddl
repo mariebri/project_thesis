@@ -4,7 +4,7 @@
         porta portb portc portd porte - port
         goodsae goodsbd - goods
         tank0 - tank
-        fuelteam0 - fuelteam
+        chargeteam0 - chargeteam
     )
 
     (:init

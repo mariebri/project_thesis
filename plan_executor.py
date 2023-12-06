@@ -22,7 +22,7 @@ class PlanExecutor:
         self.finishedActions    = []
         self.allActions         = self.remainingActions + self.finishedActions
 
-        self.vesselState    = VesselState(fuelLevel=self.plan.fuelLevel, replan=self.plan.replan, scenario=self.plan.scenario)
+        self.vesselState    = VesselState(battery=self.plan.battery, replan=self.plan.replan, scenario=self.plan.scenario)
         self.control        = control
 
     def executePlan(self):
@@ -33,16 +33,17 @@ class PlanExecutor:
             except KeyboardInterrupt:
                 print('\nReplanning')
                 replanner = Replanner(self.init, self.goal, self.plan.planner, self.plan.scenario)
+                self.vesselState.print()
 
-                if self.vesselState.low_fuel:
-                    print('Low fuel...')
-                    print('Planning for an additional fuel stop')
-                    replanner.makeProblemFile(low_fuel=True, port=self.vesselState.port)
-                    os.system('python3 main.py True %s' % self.vesselState.fuelLevel)
+                if self.vesselState.low_battery:
+                    print('Low battery...')
+                    print('Planning for an additional charging stop')
+                    replanner.makeProblemFile(low_battery=True, port=self.vesselState.port)
+                    os.system('python3 main.py -r True -b %s' % self.vesselState.battery)
                     sys.exit()
                 
                 replanner.makeProblemFile()
-                os.system('python3 main.py True 100')
+                os.system('python3 main.py -r True -b 100')
                 sys.exit()
             self.updateActions(a)
             self.updatePredEnd(a)
@@ -59,9 +60,13 @@ class PlanExecutor:
             self.vesselState.updateState(State.IN_TRANSIT, portTo)
             self.updatePredStart(a)
 
-            for i in range(math.floor(a.dur/30)):
-                self.vesselState.updateFuelLevel(-1)
+            """
+            for i in range(math.floor((a.dur/30)):
+                self.vesselState.updateBattery(-1)
                 time.sleep(0.5)
+            """
+
+            time.sleep(5)
 
             self.executeTransit(portFrom, portTo)
 
@@ -72,9 +77,13 @@ class PlanExecutor:
             self.vesselState.updateState(State.UNDOCKING, port)
             self.updatePredStart(a)
 
+            """
             for i in range(1):
-                self.vesselState.updateFuelLevel(-5)
+                self.vesselState.updateBattery(-5)
                 time.sleep(1)
+            """
+
+            time.sleep(5)
 
             self.executeTransit(port, areaTo)
 
@@ -85,9 +94,11 @@ class PlanExecutor:
             self.vesselState.updateState(State.DOCKING, port)
             self.updatePredStart(a)
 
+            """
             for i in range(1):
-                self.vesselState.updateFuelLevel(-5)
+                self.vesselState.updateBattery(-5)
                 time.sleep(1)
+            """
 
             self.executeTransit(areaFrom, port)
 
@@ -111,15 +122,15 @@ class PlanExecutor:
 
             time.sleep(1)
 
-        elif action == "fuelling":
+        elif action == "charging":
             port = pred[0]
-            print("At %f\n Fuelling at %s\n" % (start, port))
+            print("At %f\n Charging at %s\n" % (start, port))
 
             self.vesselState.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
             for i in range(5):
-                self.vesselState.updateFuelLevel(20)
+                self.vesselState.updateBattery(20)
                 time.sleep(1)
 
         else:
