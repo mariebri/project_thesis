@@ -46,11 +46,15 @@ def main(replan, battery, eta0):
     eta_sim = planExe.eta_sim[:, :planExe.n]
     nu_sim  = planExe.nu_sim[:, :planExe.n]
     tau_sim = planExe.tau_sim[:, :planExe.n]
+    U_sim   = planExe.U_sim[:planExe.n]
 
     time_range = np.arange(start=0, stop=planExe.time-h, step=h)
 
     plt.figure()
-    plt.plot(time_range, tau_sim[2,:])
+    plt.plot(time_range, tau_sim[2,:len(time_range)])
+
+    plt.figure()
+    plt.plot(time_range, U_sim[:len(time_range)])
     plt.show()
     
 

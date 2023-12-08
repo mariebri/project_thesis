@@ -6,7 +6,7 @@ import sys
 import time
 
 from control import Control
-from planner import Action, Planner
+from planner import Action, ConcurrentAction, Planner
 from replanner import Replanner
 from vessel_state import VesselState
 from utils import *
@@ -20,6 +20,7 @@ class PlanExecutor:
         self.remainingActions   = copy.deepcopy(self.plan.actions)
         self.finishedActions    = []
         self.allActions         = self.remainingActions + self.finishedActions
+        self.concurrentActions  = self.plan.concurrentActions
 
         self.vesselState        = VesselState(battery=self.plan.battery, replan=self.plan.replan, scenario=self.plan.scenario)
         self.control            = control
@@ -31,6 +32,7 @@ class PlanExecutor:
         self.eta_sim            = np.zeros((3,self.N))
         self.nu_sim             = np.zeros((3,self.N))
         self.tau_sim            = np.zeros((3,self.N))
+        self.U_sim              = np.zeros(self.N)
 
     def executePlan(self):
         actions = self.allActions
@@ -38,11 +40,19 @@ class PlanExecutor:
 
             if a.hasConcurrent:
                 print('Action %s has a concurrent action!' % a.action)
-
             try:
-                self.executeAction(a)
-                self.updateActions(a)
-                self.updatePredEnd(a)
+                if a.hasConcurrent and not a.isExecuted:
+                    ca = a.concurrentAction
+                    self.executeConcurrentAction(ca)
+                    self.updateActions(a)
+                    self.updatePredEnd(a)
+                elif a.isExecuted:
+                    self.updateActions(a)
+                    self.updatePredEnd(a)
+                else:
+                    self.executeAction(a)
+                    self.updateActions(a)
+                    self.updatePredEnd(a)
 
                 if self.plan.scenario == 3:
                     self.vesselState.checkBattery()
@@ -60,41 +70,32 @@ class PlanExecutor:
     def executeAction(self, a: Action):
         action  = a.action
         pred    = a.parameters
-        start   = a.start
 
         if action == "transit":
+            a.print()
             portFrom, portTo = getPortName(pred[0], pred[1])
-            print("At %f\n Transit from %s to %s\n" % (start, portFrom, portTo))
-
             self.vesselState.updateState(State.IN_TRANSIT, portTo)
             self.updatePredStart(a)
-
             self.executeTransit(portFrom, portTo)
 
         elif action == "undock":
+            a.print()
             port, areaTo = getPortName(pred[0], state=State.UNDOCKING)
-            print("At %f\n Undocking at %s\n" % (start, port))
-
             self.vesselState.updateState(State.UNDOCKING, port)
             self.updatePredStart(a)
-
             self.executeTransit(port, areaTo, transit=False)
 
         elif action == "dock":
+            a.print()
             areaFrom, port = getPortName(pred[0], state=State.DOCKING)
-            print("At %f\n Docking at %s\n" % (start, port))
-
             self.vesselState.updateState(State.DOCKING, port)
             self.updatePredStart(a)
-
             self.executeTransit(areaFrom, port, transit=False)
             self.vesselState.updateState(State.DOCKED, port)
 
         elif action == "load":
-            port = pred[0]
-            goods = pred[1]
-            print("At %f\n Loading %s at %s\n" % (start, goods, port))
-
+            a.print()
+            port, _ = getPortName(pred[0])
             self.vesselState.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
@@ -105,10 +106,8 @@ class PlanExecutor:
                     time.sleep(1)
 
         elif action == "unload":
-            port = pred[0]
-            goods = pred[1]
-            print("At %f\n Unloading %s at %s\n" % (start, goods, port))
-
+            a.print()
+            port, _ = getPortName(pred[0])
             self.vesselState.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
@@ -119,9 +118,8 @@ class PlanExecutor:
                     time.sleep(1)
 
         elif action == "charging":
-            port = pred[0]
-            print("At %f\n Charging at %s\n" % (start, port))
-
+            a.print()
+            port, _ = getPortName(pred[0])
             self.vesselState.updateState(State.DOCKED, port)
             self.updatePredStart(a)
 
@@ -139,7 +137,33 @@ class PlanExecutor:
         else:
             raise Exception("Not a valid action name")
         
+    def executeConcurrentAction(self, ca: ConcurrentAction):
+        # If charging, define battery second every 10 seconds
+        battery_sec = math.floor(10/self.control.h)
+
+        max_dur = ca.getMaxDuration()
+        for i in range(math.floor(max_dur/self.control.h)):
+            charging    = False
+            self.n     += 1
+            self.time  += self.control.h
+
+            ca.updateActiveActions(time=i*self.control.h)
+
+            for a in ca.active:
+                if a.action == "charging":
+                    charging = True
+
+            if charging and i % battery_sec == 0:
+                self.vesselState.updateBattery(20)
+                print('Charging: %s' % str(self.vesselState.battery))
+
+            if i % 25 == 0:
+                for a in ca.active:
+                    a.print()
+                time.sleep(1)
+   
     def updateActions(self, finishedAction: Action):
+        finishedAction.isExecuted = True
         self.remainingActions.remove(finishedAction)
         self.finishedActions.append(finishedAction)
 
@@ -212,7 +236,7 @@ class PlanExecutor:
         wp2 = eta_d[:2,i+1]
         for n in range(self.n, self.N):
 
-            if inProximity(wp2, self.control.vessel.eta[:2], self.control.roa):
+            if self.control.inProximity(wp2):
                 if i == l_eta_d-2:
                     break
                 i  += 1
@@ -222,11 +246,13 @@ class PlanExecutor:
             chi_d           = self.control.LOSguidance(wp1, wp2)
             psi_d           = chi_d - self.control.vessel.getCrabAngle()
             eta, nu, tau    = self.control.headingAutopilot(psi_d, wp2)
+            U               = np.sqrt(nu[0]**2 + nu[1]**2)
 
             # Storing simulation parameters
             self.eta_sim[:,n]    = eta
             self.nu_sim[:,n]     = nu
             self.tau_sim[:,n]    = tau.reshape(3)
+            self.U_sim[n]        = U
 
             # Battery level decreasing every 30 seconds:
             if self.plan.scenario == 3:
@@ -243,5 +269,17 @@ class PlanExecutor:
 
             self.n      += 1
             self.time   += self.control.h
+
+    def simulationLoop(self):
+
+        for i in range(self.n, self.N):
+
+            # Do stuff
+            ...
+
+
+            # Update n and time
+            self.n     += 1
+            self.time  += self.control.h
 
         

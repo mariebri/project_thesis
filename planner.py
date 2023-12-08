@@ -17,6 +17,7 @@ class Action:
         self.dur = round(float(dur),1)
 
         self.hasConcurrent = False
+        self.isExecuted = False
     
     def getEffects(self):
         return self.addEffects, self.delEffects
@@ -24,20 +25,66 @@ class Action:
     def getEndTime(self):
         return self.start + self.dur
     
-    def updateConcurrent(self):
+    def updateConcurrent(self, ca):
         self.hasConcurrent = True
+        self.concurrentAction = ca
 
-class ConcurrentActions:
+    def print(self):
+        if self.action == "transit":
+            portFrom, portTo = getPortName(self.parameters[0], self.parameters[1])
+            print("At %f\n Transit from %s to %s\n" % (self.start, portFrom, portTo))
+
+        elif self.action == "undock":
+            port, _ = getPortName(self.parameters[0], state=State.UNDOCKING)
+            print("At %f\n Undocking at %s\n" % (self.start, port))
+
+        elif self.action == "dock":
+            _, port = getPortName(self.parameters[0], state=State.DOCKING)
+            print("At %f\n Docking at %s\n" % (self.start, port))
+
+        elif self.action == "load":
+            port, goods = self.parameters[0], self.parameters[1]
+            print("At %f\n Loading %s at %s\n" % (self.start, goods, port))
+
+        elif self.action == "unload":
+            port, goods = self.parameters[0], self.parameters[1]
+            print("At %f\nUnloading %s at %s\n" % (self.start, goods, port))
+
+        elif self.action == "charging":
+            port = self.parameters[0]
+            print("At %f\n Charging at %s\n" % (self.start, port))
+
+        else:
+            print("Invalid action name")
+
+class ConcurrentAction:
     def __init__(self, start, a1: Action, a2: Action):
         self.start      = start
-        self.concurrent = []
+        self.actions    = []
+        self.active     = []
 
-        self.addConcurrent(a1)
-        self.addConcurrent(a2)
+        self.addAction(a1)
+        self.addAction(a2)
 
-    def addConcurrent(self, a: Action):
-        self.concurrent.append(a)
-        a.updateConcurrent()
+    def addAction(self, a: Action):
+        self.actions.append(a)
+        self.active.append(a)
+        a.updateConcurrent(self)
+
+    def getMaxDuration(self):
+        maxDur = 0
+        for a in self.actions:
+            if a.dur >= maxDur:
+                maxDur = a.dur
+        return maxDur
+    
+    def updateActiveActions(self, time):
+        # Presumes time=0 at beginning
+        for i in range(len(self.actions)):
+            a = self.actions[i]
+            if a.dur < time:
+                a.isExecuted = True
+                self.active.remove(a)
 
 class Planner:
     def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, battery=100, scenario=1):
@@ -137,10 +184,10 @@ class Planner:
                 ai  = actions[i]
                 ai1 = actions[i+1]
                 if ai.start == ai1.start:
-                    c = ConcurrentActions(ai.start, ai, ai1)
+                    c = ConcurrentAction(ai.start, ai, ai1)
                     ai2 = actions[i+2]
                     if ai.start == ai2.start:
-                        c.addConcurrent(ai2)
+                        c.addAction(ai2)
                     concurrentActions.append(c)
 
         elif self.planner == PlannerType.GRAPHPLAN:

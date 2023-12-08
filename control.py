@@ -12,9 +12,18 @@ class Control:
         self.world  = world
 
         self.eint       = np.zeros((3,1))
-        self.lookahead  = 10
+        self.lookahead  = 100
         self.roa        = 8
-    
+
+    def inProximity(self, wp):
+        """
+        Goal: Return True when the ship is within the circle of
+        acceptance corresponding to the desired waypoint
+        """
+        if np.linalg.norm(wp - self.vessel.eta[:2]) <= self.roa:
+            return True
+        return False
+
     def PID(self, eta_d, nu_d=np.array([0,0,0])):
         eta, nu = self.vessel.eta, self.vessel.nu
         rotMat  = self.vessel.getJ(psi=eta[2])

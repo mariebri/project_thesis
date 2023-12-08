@@ -48,6 +48,13 @@ def getPortName(portFrom: str, portTo="", state=State.IN_TRANSIT):
 def ssa(angle):
     return ca.fmod(angle + ca.pi, 2*ca.pi) - ca.pi
 
+def saturate(x, xMin, xMax):
+    if x > xMax:
+        x = xMax
+    elif x < xMin:
+        x = xMin
+    return x
+
 def trajectory(eta_des, x0, u0, harbor, vessel: ReVolt, T=20, h=2):
     x0 = x0[:,np.newaxis]
     u0 = u0[:,np.newaxis]
@@ -290,12 +297,3 @@ def dubinsPath(eta_start, eta_end, curvature=1.0, step=10):
         eta[2,i]= ssa(e[2])
     
     return eta
-
-def inProximity(wp, pos, roa=0.1):
-    """
-    Goal: Return True when the ship is within the circle of
-    acceptance corresponding to the desired waypoint
-    """
-    if np.linalg.norm(wp - pos) <= roa:
-        return True
-    return False
