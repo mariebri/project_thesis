@@ -1,14 +1,10 @@
 import os
-import sys
 import shutil
 import subprocess
 import time
-import copy
-import math
 import pyplanning as pp
 from utils import *
 from vessel_state import *
-from replanner import Replanner
 
 class Action:
     def __init__(self, action, parameters, addEffects, delEffects, planner: PlannerType, start=0.0, dur=0.0):
@@ -17,26 +13,31 @@ class Action:
         self.addEffects = addEffects
         self.delEffects = delEffects
         self.planner = planner
-        self.start = float(start)
-        self.dur = float(dur)
+        self.start = round(float(start),1)
+        self.dur = round(float(dur),1)
 
-    def getAction(self):
-        return self.action
-    
-    def getParameters(self):
-        return self.parameters
+        self.hasConcurrent = False
     
     def getEffects(self):
         return self.addEffects, self.delEffects
     
-    def getPlanner(self):
-        return self.planner
-
-    def getStartTime(self):
-        return self.start
-    
     def getEndTime(self):
         return self.start + self.dur
+    
+    def updateConcurrent(self):
+        self.hasConcurrent = True
+
+class ConcurrentActions:
+    def __init__(self, start, a1: Action, a2: Action):
+        self.start      = start
+        self.concurrent = []
+
+        self.addConcurrent(a1)
+        self.addConcurrent(a2)
+
+    def addConcurrent(self, a: Action):
+        self.concurrent.append(a)
+        a.updateConcurrent()
 
 class Planner:
     def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, battery=100, scenario=1):
@@ -48,11 +49,12 @@ class Planner:
         self.scenario               = scenario
 
         self.plan, self.compTime    = self.computePlan()
-        self.actions                = self.getActionsFromPlan()
+        self.actions, self.concurrentActions = self.getActionsFromPlan()
+        self.init, self.goal        = self.getPredicates()
 
     def printPlan(self):
         for a in self.actions:
-            print(a.getStartTime(), ":", a.getAction(), a.getParameters())
+            print(a.start, ":", a.action, a.parameters)
 
     def computePlan(self):
         start = time.time()
@@ -113,6 +115,7 @@ class Planner:
 
     def getActionsFromPlan(self):
         actions = []
+        concurrentActions = []
 
         if self.planner == PlannerType.TEMPORAL:
             with open(self.plan) as f:
@@ -130,6 +133,16 @@ class Planner:
                     action = Action(action, parameters, addEffects, delEffects, self.planner, start, dur)
                     actions.append(action)
 
+            for i in range(len(actions)-1):
+                ai  = actions[i]
+                ai1 = actions[i+1]
+                if ai.start == ai1.start:
+                    c = ConcurrentActions(ai.start, ai, ai1)
+                    ai2 = actions[i+2]
+                    if ai.start == ai2.start:
+                        c.addConcurrent(ai2)
+                    concurrentActions.append(c)
+
         elif self.planner == PlannerType.GRAPHPLAN:
             for i in range(len(self.plan)):
                 i += 1
@@ -140,9 +153,9 @@ class Planner:
                     addEffects, delEffects = self.getEffects(action, parameters)
                     action = Action(action, parameters, addEffects, delEffects, self.planner, start=i)
                     actions.append(action)
-        return actions
+        return actions, concurrentActions
 
-    def getPredicates(self, startPos=False):
+    def getPredicates(self):
         # Reads from the problem file and returns a list of all true initial and goal predicates
         initPred, goalPred = [], []
 
@@ -168,12 +181,6 @@ class Planner:
                     if (lines[j] == ""):
                         break
                     goalPred.append(lines[j])
-
-        if startPos:
-            for pred in initPred:
-                if "vesselat" in pred:
-                    port = pred[2]
-                    return initPred, goalPred, port
 
         return initPred, goalPred
     
@@ -262,3 +269,10 @@ class Planner:
                     addEffects.append(effect + paramString)
 
         return addEffects, delEffects
+    
+    def getStartPos(self):
+        for pred in self.init:
+            if "vesselat" in pred:
+                pred = pred.split()
+                port, _ = getPortName(pred[2])
+                return port

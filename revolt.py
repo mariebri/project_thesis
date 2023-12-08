@@ -109,6 +109,13 @@ class ReVolt:
         
         return tau
 
+    def getCrabAngle(self):
+        u, v    = self.nu[0], self.nu[1]
+        U       = np.sqrt(u**2 + v**2)
+        if U == 0:
+            return 0
+        return np.arcsin(v/U)
+
     def step(self, h, u, a, eta=[], nu=[], optModel=False):
         if not optModel:
             eta = self.eta

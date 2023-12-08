@@ -60,14 +60,14 @@ class World:
         self.addConnection('E', 'E-Transit', np.array([477,1019]), np.deg2rad(-60), np.deg2rad(120))
         self.addConnection('A-Transit', 'B-Transit', np.array([750,421]), np.deg2rad(110), np.deg2rad(-80))
         self.addConnection('B-Transit', 'B-Cross', np.array([670, 615]), np.deg2rad(120), np.deg2rad(-60))
-        self.addConnection('Cross', 'B-Cross', np.array([605,756]), np.deg2rad(-60), np.deg2rad(110))
+        self.addConnection('Cross', 'B-Cross', np.array([605,756]), np.deg2rad(-60), np.deg2rad(0))
         self.addConnection('B-Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(100), np.deg2rad(-60))
         self.addConnection('Cross', 'Cross-C1', np.array([567,752]), np.deg2rad(170), np.deg2rad(-10))
         self.addConnection('Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(120), np.deg2rad(-60))
         self.addConnection('Cross-C1', 'Cross-C2', np.array([527,731]), np.deg2rad(-140), np.deg2rad(40))
         self.addConnection('Cross-C2', 'C-Transit', np.array([462,701]), np.deg2rad(-160), np.deg2rad(20))
         self.addConnection('C-Transit', 'D-Cross', np.array([335,689]), np.deg2rad(170), np.deg2rad(-10))
-        self.addConnection('D-Cross', 'D-Transit', np.array([150,704]), np.deg2rad(150), np.deg2rad(-10))
+        self.addConnection('D-Cross', 'D-Transit', np.array([146,698]), np.deg2rad(150), np.deg2rad(-10))
 
     def plotMap(self):
         img = np.asarray(Image.open('./Map/Map_flight.png'))

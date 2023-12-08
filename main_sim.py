@@ -7,47 +7,54 @@ from utils import *
 from world import World
 
 if __name__ == '__main__':
-    h           = 0.4
-    time        = 0
+    h       = 0.4
+    time    = 0
+    eint    = np.zeros((3,1))
+    roa     = 8
+    N       = 20000
 
     world           = World()
-    vessel          = ReVolt(x=np.concatenate((world.portA, np.zeros(3))))
-    control         = Control(vessel, world)
+    vessel          = ReVolt(x=np.concatenate((world.portB, np.zeros(3))))
+    control         = Control(h, vessel, world)
 
-    eta_d = control.getDubins('A-port', 'C-port')
+    # Simulation parameters
+    eta_sim     = np.zeros((3,N))
+    nu_sim      = np.zeros((3,N))
+    tau_sim     = np.zeros((3,N))
+
 
     world.plot(showInd=True)
+    eta_d = control.getOptimalEta('B-port', 'C-port')
 
-    for i in range(eta_d.shape[1]-1):
-        pt1     = eta_d[:2,i]
-        pt2     = eta_d[:2,i+1]
+    i   = 0
+    wp1 = eta_d[:2,i]
+    wp2 = eta_d[:2,i+1]
+    for n in range(N):
+        if inProximity(wp2, vessel.eta[:2], roa):
+            i  += 1
+            wp1 = eta_d[:2,i]
+            wp2 = eta_d[:2,i+1]
 
-        # Compute cross-track and along-track error
-        pi_p        = np.arctan2(pt2[1]-pt1[1], pt2[0]-pt1[0])
-        R           = np.array([[np.cos(pi_p), -np.sin(pi_p)], [np.sin(pi_p), np.cos(pi_p)]])
-        track_err   = R.T @ (vessel.eta[:2] - pt1)
-        x_e, y_e    = track_err[0], track_err[1]
+            if i == eta_d.shape[1]-3:
+                roa = 3
+            if i == eta_d.shape[1]-2:
+                N = n+1
+                break
 
-        # LOS guidance law
-        lookahead   = 10
-        Kp          = 1/lookahead
-        chi_d       = pi_p - np.arctan(Kp * y_e)
+        # LOS Guidance to find desired course
+        chi_d       = control.LOSguidance(wp1, wp2)
 
-        # Course autopilot
-        ...
+        # Heading autopilot
+        psi_d               = chi_d - vessel.getCrabAngle()
+        eta, nu, tau, eint  = control.headingAutopilot(psi_d, wp2, eint)
 
+        # Storing simulation parameters
+        eta_sim[:,n]    = eta
+        nu_sim[:,n]     = nu
+        tau_sim[:,n]    = tau.reshape(3)
 
-    """
-    for i in range(eta_d.shape[1]):
-        eta_des = eta_d[:,i]
-        steps   = control.getToEta(eta_des, h)
-        time   += steps*h
-
-        vessel.plot(eta_des, color='yellow')
-        vessel.plot()
-        plt.pause(0.001)
-
-    print(time)
-    plt.plot(eta_d[0,:], eta_d[1,:], color='green')
+        if n % 40 == 0 or n == N-1:
+            vessel.plot()
+            plt.pause(0.01)
+            
     plt.show()
-    """

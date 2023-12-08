@@ -23,18 +23,16 @@ class VesselState:
         else:
             self.battery += change
 
-        # Comment if not in scenario 3
         if self.scenario == 3:
             self.checkBattery()
 
-        print('New battery level:', self.battery)
-
     def checkBattery(self):
         if self.battery < 40 and not self.replan:
-            print('Battery level too low!')
-            print('Need to replan')
+            print('Battery level too low! Replanning at next port...')
             self.low_battery = True
-            raise KeyboardInterrupt
+
+            if self.state == State.DOCKED:
+                raise KeyboardInterrupt
         
     def print(self):
         print('Vessel state:\n')

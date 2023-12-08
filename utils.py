@@ -28,7 +28,7 @@ def getDomainProblemFiles(plannerType: PlannerType, scenario=1, replan=False):
             problemFile = "/home/marie/project_thesis/Planning/CLASSICAL/p3.pddl"
 
     if replan:
-        problemFile = "/home/marie/project_thesis/Planning/replan_problem.pddl"
+        problemFile = "/home/marie/project_thesis/Planning/p_replan.pddl"
 
     return domainFile, problemFile
 
@@ -277,61 +277,7 @@ def trajectory(eta_des, x0, u0, harbor, vessel: ReVolt, T=20, h=2):
     
     return x_opt, u_opt
 
-def thrustAllocation(tau, vessel: ReVolt, unconstrained=True):
-    """
-    Goal: Return u = [u1, u2, u3], a = [a1, a2, a3]
-
-    Unconstrained: u_e = inv(K_e) @ T_pseudoinv @ tau
-    where u_e = [u1x, u1y, u2x, u2y, u3x, u3y]
-    """
-
-    if unconstrained:
-        Te, Ke      = vessel.T_e, vessel.K_e
-        B           = Te @ Ke
-        B_pseudoinv = B.T @ np.linalg.inv(B @ B.T)
-        #T_pseudoinv = Te.T @ np.linalg.inv(Te @ Te.T)
-        #u_e         = np.linalg.inv(Ke) @ T_pseudoinv @ tau
-        u_e         = B_pseudoinv @ tau
-    else:
-        # TODO
-        u_e = np.zeros(6)
-
-    u1  = np.sqrt(u_e[0]**2 + u_e[1]**2)
-    u2  = np.sqrt(u_e[2]**2 + u_e[3]**2)
-    u3  = np.sqrt(u_e[4]**2 + u_e[5]**2)
-    a1  = np.arctan2(u_e[1], u_e[0])
-    a2  = np.arctan2(u_e[3], u_e[2])
-    a3  = np.arctan2(u_e[5], u_e[4])
-    u   = np.array([u1, u2, u3])
-    a   = np.array([a1, a2, a3])
-
-    return u, a
-
-def PIDcontroller(eta_p, nu_p, eta_tilde_int, vessel: ReVolt):
-    eta     = vessel.eta
-    nu      = vessel.nu
-    J       = vessel.getJ(psi=eta[2])
-
-    Kp      = np.diag([1000, 1000, 10000])
-    Kd      = np.diag([1000, 1000, 15000])
-    Ki      = np.diag([10, 10, 20])
-
-    eta_tilde       = eta - eta_p
-    eta_tilde_dot   = J @ (nu - nu_p)
-    eta_tilde       = eta_tilde[:,np.newaxis]
-    eta_tilde_dot   = eta_tilde_dot[:,np.newaxis]
-
-    int_term        = Ki @ eta_tilde_int
-    force_sat       = vessel.T_max
-    for i, force in enumerate(int_term[:, 0]):
-        if abs(force) > force_sat[i]:
-            saturated_force = np.sign(force) * force_sat[i]
-            int_term[i, 0] = saturated_force
-
-    tau_fb = - J.T @ (Kp @ eta_tilde + Kd @ eta_tilde_dot + int_term)
-    return tau_fb, eta_tilde
-
-def dubinsPath(eta_start, eta_end, curvature=1.0, step=5):
+def dubinsPath(eta_start, eta_end, curvature=1.0, step=10):
     path        = dubins.shortest_path(eta_start, eta_end, curvature)
     eta_d, _    = path.sample_many(step)
 
@@ -345,7 +291,11 @@ def dubinsPath(eta_start, eta_end, curvature=1.0, step=5):
     
     return eta
 
-def inProximity(eta, eta_d):
-    if np.linalg.norm(eta - eta_d) <= 0.1:
+def inProximity(wp, pos, roa=0.1):
+    """
+    Goal: Return True when the ship is within the circle of
+    acceptance corresponding to the desired waypoint
+    """
+    if np.linalg.norm(wp - pos) <= roa:
         return True
     return False
