@@ -107,6 +107,9 @@ class Planner:
         self.actions, self.concurrentActions = self.getActionsFromPlan()
         self.init, self.goal        = self.getPredicates()
 
+        print("\n\nComputation time: ", self.compTime)
+        self.printPlan()
+
     def printPlan(self):
         for a in self.actions:
             print(a.start, ":", a.action, a.parameters)

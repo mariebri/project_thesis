@@ -30,8 +30,6 @@ class VesselState:
     def checkBattery(self):
         if self.battery < 40 and not self.replan:
             self.lowBattery = True
-
-            #if self.state == State.DOCKED:
             raise NameError("Battery is too low, need to replan...")
         
     def print(self):

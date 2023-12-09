@@ -1,4 +1,4 @@
-(define (problem replan) (:domain graphplan)
+(define (problem graphplan) (:domain graphplan)
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
@@ -8,6 +8,10 @@
     )
 
     (:init
+        (vesselat vessel0 porta)
+        (isdocked vessel0)
+        (goodsat goodsae porta)
+        (goodsat goodsbd portb)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -18,16 +22,13 @@
         (path portd portc)
         (path portc porte)
         (path porte portc)
-        (onboard goodsae vessel0)
-        (vesselat vessel0 portb)
-        (onboard goodsbd vessel0)
-        (chargeteamat chargeteam0 porte)
+        (chargeteamat chargeteam0 portc)
+        (chargeteamat chargeteam0 portd)
     )
 
     (:goal (and
-        (fulltank tank0)
         (goodsat goodsae porte)
         (goodsat goodsbd portd)
+        (fulltank tank0)
     ))
-
 )

@@ -11,7 +11,7 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 3
+scenario    = 1
 
 h           = 0.3
 N           = 50000
@@ -21,8 +21,6 @@ world       = World()
 
 def main():
     plan    = Planner(plannerType, algorithm, scenario)
-    print("\n\nComputation time: ", plan.compTime)
-    plan.printPlan()
 
     # Initialize vessel
     port0   = plan.getStartPos()
@@ -33,13 +31,14 @@ def main():
 
     # Executing the plan
     planExe = PlanExecutor(plan, control, N)
-    #planExe.executePlan()
     planExe.simulationLoop()
 
     print('Executing finished ...')
     print('n: %s \nN: %s' % (planExe.n, planExe.N))
     print('Total time: %s' % planExe.time)
 
+
+    # Simulation
     eta_sim = planExe.eta_sim[:, :planExe.n]
     nu_sim  = planExe.nu_sim[:, :planExe.n]
     tau_sim = planExe.tau_sim[:, :planExe.n]

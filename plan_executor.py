@@ -123,6 +123,7 @@ class PlanExecutor:
             self.updateStartedAction(a, State.IN_TRANSIT)
             portFrom, portTo    = getPortName(a.parameters[0], a.parameters[1])
             self.executeTransit(a, portFrom, portTo, step=5)
+            a.update(self.control.h, self.hardLimit)
 
         elif a.action == "undock":
             self.hardLimit = False
@@ -131,6 +132,7 @@ class PlanExecutor:
             self.updateStartedAction(a, State.UNDOCKING)
             port, areaTo = getPortName(a.parameters[0], state=State.UNDOCKING)
             self.executeTransit(a, port, areaTo, step=3)
+            a.update(self.control.h, self.hardLimit)
 
         elif a.action == "dock":
             self.hardLimit = False
@@ -139,21 +141,29 @@ class PlanExecutor:
             self.updateStartedAction(a, State.DOCKING)
             areaFrom, port = getPortName(a.parameters[0], state=State.DOCKING)
             self.executeTransit(a, areaFrom, port, step=3)
+            a.update(self.control.h, self.hardLimit)
+
+            if self.plan.scenario == 2 and areaFrom == "D" and a.isExecuted:
+                print("Oh no, charging station at port D is busy!")
+                raise NameError("Replanning to find another charging station")
 
         elif a.action == "load":
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
+            a.update(self.control.h, self.hardLimit)
 
         elif a.action == "unload":
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
+            a.update(self.control.h, self.hardLimit)
 
         elif a.action == "charging":
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
+            a.update(self.control.h, self.hardLimit)
 
             battery_sec = math.floor(10/self.control.h)
             if self.n % battery_sec == 0:
@@ -165,12 +175,9 @@ class PlanExecutor:
         
         if self.n % 50 == 0:
                 a.print()
-        
-        a.update(self.control.h, self.hardLimit)
 
     def executeTransit(self, a: Action, portFrom, portTo, step):
         if self.newRoute:
-            print(portFrom, portTo, self.vesselState.toArea, self.area0)
             portFrom = self.vesselState.toArea
             self.newRoute               = False
             self.eta_d, self.eta_toArea = self.control.getOptimalEta(portFrom, portTo, step)
@@ -222,7 +229,7 @@ class PlanExecutor:
     def replanning(self):
         self.nReplan= self.n
         replanner = Replanner(self.init, self.goal, self.plan, self.vesselState.battery, \
-                                  self.vesselState.lowBattery, self.vesselState.port, self.control.vessel.eta)
+                                  self.vesselState.lowBattery, self.vesselState.port)
         self.plan   = replanner.plan
         self.init   = replanner.plan.init
         self.goal   = replanner.plan.goal

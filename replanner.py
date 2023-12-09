@@ -2,7 +2,7 @@ from utils import *
 from planner import Planner
 
 class Replanner():
-    def __init__(self, init, goal, origPlan, battery=100, lowBattery=False, port0="A", eta0=np.zeros(3)):
+    def __init__(self, init, goal, origPlan, battery=100, lowBattery=False, port0="A"):
         self.init       = init
         self.goal       = goal
 
@@ -13,7 +13,6 @@ class Replanner():
         self.battery    = battery
         self.lowBattery = lowBattery
         self.port0      = port0
-        self.eta0       = eta0
 
         self.replanFile = '/home/marie/project_thesis/Planning/p_replan.pddl'
         self.makeProblemFile()
@@ -52,6 +51,8 @@ class Replanner():
                 # the vessel is at the port it was transitting from
                 state = state.replace("intransit", "vesselat")
                 initLines.append("        (" + state + ")\n")
+            elif self.scenario == 2 and "chargeteamat chargeteam0 portd" in state:
+                ...
             else:
                 initLines.append("        (" + state + ")\n")
         if self.lowBattery:
