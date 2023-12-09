@@ -1,9 +1,6 @@
 import copy
-import matplotlib.pyplot as plt
 import math
-import os
-import sys
-import time
+import matplotlib.pyplot as plt
 
 from control import Control
 from planner import Action, ConcurrentAction, Planner
@@ -16,6 +13,7 @@ class PlanExecutor:
         self.plan               = plan
         self.init, self.goal    = self.plan.getPredicates()
         self.port0              = self.plan.getStartPos()
+        self.area0              = "A-port"
 
         self.remainingActions   = copy.deepcopy(self.plan.actions)
         self.finishedActions    = []
@@ -32,6 +30,7 @@ class PlanExecutor:
 
         self.aIdx               = 0
         self.eta_d              = np.zeros((3,1))
+        self.eta_toArea         = self.port0
         self.wp1, self.wp2      = [], []
         self.etaIdx             = 0
         self.etaIdxMax          = self.eta_d.shape[1]-2
@@ -171,9 +170,11 @@ class PlanExecutor:
 
     def executeTransit(self, a: Action, portFrom, portTo, step):
         if self.newRoute:
-            self.newRoute = False
-            self.eta_d          = self.control.getOptimalEta(portFrom, portTo, step)
-            self.etaIdxMax      = self.eta_d.shape[1]-2
+            print(portFrom, portTo, self.vesselState.toArea, self.area0)
+            portFrom = self.vesselState.toArea
+            self.newRoute               = False
+            self.eta_d, self.eta_toArea = self.control.getOptimalEta(portFrom, portTo, step)
+            self.etaIdxMax              = self.eta_d.shape[1]-2
 
             if self.etaIdxMax <= 0:
                 a.isExecuted = True
@@ -181,6 +182,9 @@ class PlanExecutor:
             self.etaIdx         = 0
             self.wp1            = self.eta_d[:2, 0]
             self.wp2            = self.eta_d[:2, 1]
+
+        if self.eta_toArea[self.etaIdx] != '':
+            self.vesselState.toArea = self.eta_toArea[self.etaIdx]
 
         if self.control.inProximity(self.wp2):
             if self.etaIdx == self.etaIdxMax:
@@ -216,12 +220,14 @@ class PlanExecutor:
         self.U_sim[self.n]      = 0
 
     def replanning(self):
+        self.nReplan= self.n
         replanner = Replanner(self.init, self.goal, self.plan, self.vesselState.battery, \
                                   self.vesselState.lowBattery, self.vesselState.port, self.control.vessel.eta)
         self.plan   = replanner.plan
         self.init   = replanner.plan.init
         self.goal   = replanner.plan.goal
         self.port0  = replanner.plan.getStartPos()
+        self.area0  = self.vesselState.toArea
         
         self.remainingActions   = copy.deepcopy(replanner.plan.actions)
         self.finishedActions    = []
@@ -266,6 +272,7 @@ class PlanExecutor:
 
                 # Check if all actions are finished
                 if len(self.remainingActions) == 0:
+                    self.N = self.n
                     return
 
         except NameError:

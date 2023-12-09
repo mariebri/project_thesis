@@ -86,21 +86,25 @@ class Control:
         return u, a
 
     def getOptimalEta(self, portFrom, portTo, step=5):
-        path    = self.world.findPath(portFrom, portTo)
+        path        = self.world.findPath(portFrom, portTo)
         path.insert(0, portFrom)
-        eta0    = self.vessel.eta
+        eta0        = self.vessel.eta
 
         for i in range(len(path)-1):
-            eta_des, _  = self.world.getTransitInfo(path[i], path[i+1])
-            eta         = dubinsPath(eta_start=eta0, eta_end=eta_des, step=step)
+            eta_des, _      = self.world.getTransitInfo(path[i], path[i+1])
+            eta             = dubinsPath(eta_start=eta0, eta_end=eta_des, step=step)
 
             if 'eta_opt' in locals():
-                eta_opt = np.concatenate((eta_opt, eta), axis=1)
+                eta_opt     = np.concatenate((eta_opt, eta), axis=1)
+                eta_toArea.append(path[i+1])
+                [eta_toArea.append('') for i in range(eta.shape[1]-1)]
             else:
-                eta_opt = eta
+                eta_opt     = eta
+                eta_toArea  = ['' for i in range(eta.shape[1])]
+                eta_toArea[0] = path[i+1]
             eta0 = eta_opt[:,-1]
 
-        return eta_opt
+        return eta_opt, eta_toArea
     
     def LOSguidance(self, wp1, wp2):
         x1, y1      = wp1[0], wp1[1]

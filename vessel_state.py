@@ -10,7 +10,8 @@ class VesselState:
         self.scenario   = scenario
 
         self.area       = "A-port"
-        self.port       = "A"
+        self.port       = "A-port"
+        self.toArea     = "A-port"
 
     def updateState(self, state, area):
         self.state  = state

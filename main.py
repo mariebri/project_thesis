@@ -1,4 +1,3 @@
-import argparse
 import math
 import matplotlib.pyplot as plt
 
