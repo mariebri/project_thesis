@@ -46,6 +46,11 @@ def saturate(x, xMin, xMax):
     return x
 
 def dubinsPath(eta_start, eta_end, curvature=1.0, step=10):
+    """
+    Source: https://github.com/AndrewWalker/pydubins/tree/master
+    Goal: Find shortest paths between two points
+    Returns: The desired poses
+    """
     path        = dubins.shortest_path(eta_start, eta_end, curvature)
     eta_d, _    = path.sample_many(step)
 
