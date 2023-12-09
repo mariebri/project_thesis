@@ -8,16 +8,18 @@ from vessel_state import *
 
 class Action:
     def __init__(self, action, parameters, addEffects, delEffects, planner: PlannerType, start=0.0, dur=0.0):
-        self.action = action
-        self.parameters = parameters
-        self.addEffects = addEffects
-        self.delEffects = delEffects
-        self.planner = planner
-        self.start = round(float(start),1)
-        self.dur = round(float(dur),1)
+        self.action         = action
+        self.parameters     = parameters
+        self.addEffects     = addEffects
+        self.delEffects     = delEffects
+        self.planner        = planner
+        self.start          = round(float(start),1)
+        self.dur            = round(float(dur),1)
 
-        self.hasConcurrent = False
-        self.isExecuted = False
+        self.runtime        = 0
+        self.hasConcurrent  = False
+        self.isStarted      = False
+        self.isExecuted     = False
     
     def getEffects(self):
         return self.addEffects, self.delEffects
@@ -29,30 +31,35 @@ class Action:
         self.hasConcurrent = True
         self.concurrentAction = ca
 
+    def update(self, step, hardLimit=True):
+        self.runtime += step
+        if self.runtime >= self.dur and hardLimit:
+            self.isExecuted = True
+
     def print(self):
         if self.action == "transit":
             portFrom, portTo = getPortName(self.parameters[0], self.parameters[1])
-            print("At %f\n Transit from %s to %s\n" % (self.start, portFrom, portTo))
+            print("At %f: Transit from %s to %s" % (self.start, portFrom, portTo))
 
         elif self.action == "undock":
             port, _ = getPortName(self.parameters[0], state=State.UNDOCKING)
-            print("At %f\n Undocking at %s\n" % (self.start, port))
+            print("At %f: Undocking at %s" % (self.start, port))
 
         elif self.action == "dock":
             _, port = getPortName(self.parameters[0], state=State.DOCKING)
-            print("At %f\n Docking at %s\n" % (self.start, port))
+            print("At %f: Docking at %s" % (self.start, port))
 
         elif self.action == "load":
             port, goods = self.parameters[0], self.parameters[1]
-            print("At %f\n Loading %s at %s\n" % (self.start, goods, port))
+            print("At %f: Loading %s at %s" % (self.start, goods, port))
 
         elif self.action == "unload":
             port, goods = self.parameters[0], self.parameters[1]
-            print("At %f\nUnloading %s at %s\n" % (self.start, goods, port))
+            print("At %f: Unloading %s at %s" % (self.start, goods, port))
 
         elif self.action == "charging":
             port = self.parameters[0]
-            print("At %f\n Charging at %s\n" % (self.start, port))
+            print("At %f: Charging at %s" % (self.start, port))
 
         else:
             print("Invalid action name")
@@ -78,6 +85,9 @@ class ConcurrentAction:
                 maxDur = a.dur
         return maxDur
     
+    def updateActive(self, finishedAction):
+        self.active.remove(finishedAction)
+    
     def updateActiveActions(self, time):
         # Presumes time=0 at beginning
         for i in range(len(self.actions)):
@@ -87,12 +97,10 @@ class ConcurrentAction:
                 self.active.remove(a)
 
 class Planner:
-    def __init__(self, planner: PlannerType, algorithm="stp-2", replan=False, battery=100, scenario=1):
+    def __init__(self, planner: PlannerType, algorithm="stp-2", scenario=1, replan=False):
         self.domain, self.problem   = getDomainProblemFiles(plannerType=planner, replan=replan, scenario=scenario)
         self.planner                = planner
         self.algorithm              = algorithm
-        self.replan                 = replan
-        self.battery                = battery
         self.scenario               = scenario
 
         self.plan, self.compTime    = self.computePlan()

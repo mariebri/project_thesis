@@ -12,32 +12,30 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 1
+scenario    = 3
 
 h           = 0.3
 N           = 50000
 
 world       = World()
-world.plot(showInd=False)
 
 
-def main(replan, battery, eta0):
-    plan    = Planner(plannerType, algorithm, replan, battery, scenario)
+def main():
+    plan    = Planner(plannerType, algorithm, scenario)
     print("\n\nComputation time: ", plan.compTime)
     plan.printPlan()
 
     # Initialize vessel
-    if np.linalg.norm(eta0 - np.zeros(3)) == 0:
-        port0   = plan.getStartPos()
-        print('Start pos: %s' % port0)
-        eta0    = world.getPort(port0)
-    x0          = np.concatenate((eta0, np.zeros(3)))
-    vessel      = ReVolt(x=x0)
-    control     = Control(h, vessel, world)
+    port0   = plan.getStartPos()
+    eta0    = world.getPort(port0)
+    x0      = np.concatenate((eta0, np.zeros(3)))
+    vessel  = ReVolt(x=x0)
+    control = Control(h, vessel, world)
 
     # Executing the plan
     planExe = PlanExecutor(plan, control, N)
-    planExe.executePlan()
+    #planExe.executePlan()
+    planExe.simulationLoop()
 
     print('Executing finished ...')
     print('n: %s \nN: %s' % (planExe.n, planExe.N))
@@ -55,35 +53,16 @@ def main(replan, battery, eta0):
 
     plt.figure()
     plt.plot(time_range, U_sim[:len(time_range)])
+
+    plt.figure()
+    world.plot()
+    for i in range(len(time_range)):
+        if i % math.floor(10/control.h) == 0:
+            vessel.plot(eta_sim[:,i])
     plt.show()
     
 
 
 if __name__ == '__main__':
-    
-    replan  = False
-    battery = 100
-    eta0    = np.zeros(3)
 
-    # Argument parser
-    argParser = argparse.ArgumentParser()
-    argParser.add_argument("-r", "--replan", help="1/0")
-    argParser.add_argument("-b", "--battery", help="[0, 100] %")
-    argParser.add_argument("-x", "--xpos", help="x-position")
-    argParser.add_argument("-y", "--ypos", help="y-position")
-    argParser.add_argument("-p", "--psi", help="heading angle")
-
-    args    = argParser.parse_args()
-    if args.replan == "1":
-        replan = True
-    if args.battery != None:
-        battery = int(args.battery)
-    if args.xpos != None:
-        x = float(args.xpos)
-    if args.ypos != None:
-        y = float(args.ypos)
-    if args.psi != None:
-        p = float(args.psi)
-        eta0 = np.array([x, y, p])
-
-    main(replan, battery, eta0)
+    main()

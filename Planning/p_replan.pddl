@@ -31,9 +31,8 @@
         (= (speed vessel0) 1)
         (onboard goodsae vessel0)
         (onboard goodsbd vessel0)
-        (vesselat vessel0 portd)
-        (isdocked vessel0)
-        (chargeteamat chargeteam0 portd)
+        (vesselat vessel0 portb)
+        (chargeteamat chargeteam0 portc)
     )
 
     (:goal (and

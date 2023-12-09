@@ -1,15 +1,26 @@
 from utils import *
+from planner import Planner
 
 class Replanner():
-    def __init__(self, init, goal, planner, scenario):
+    def __init__(self, init, goal, origPlan, battery=100, lowBattery=False, port0="A", eta0=np.zeros(3)):
         self.init       = init
         self.goal       = goal
-        self.planner    = planner
-        self.scenario   = scenario
 
-        self.replanFile     = '/home/marie/project_thesis/Planning/p_replan.pddl'
+        self.planner    = origPlan.planner
+        self.algorithm  = origPlan.algorithm
+        self.scenario   = origPlan.scenario
 
-    def makeProblemFile(self, low_battery=False, port="A"):
+        self.battery    = battery
+        self.lowBattery = lowBattery
+        self.port0      = port0
+        self.eta0       = eta0
+
+        self.replanFile = '/home/marie/project_thesis/Planning/p_replan.pddl'
+        self.makeProblemFile()
+
+        self.plan       = Planner(self.planner, self.algorithm, self.scenario, replan=True)
+
+    def makeProblemFile(self):
         f   = open(self.replanFile, "w")
         _, problemFile = getDomainProblemFiles(self.planner, replan=False, scenario=self.scenario)
         fPF = open(problemFile, "r")
@@ -43,13 +54,13 @@ class Replanner():
                 initLines.append("        (" + state + ")\n")
             else:
                 initLines.append("        (" + state + ")\n")
-        if low_battery:
-            initLines.append("        (chargeteamat chargeteam0 port" + port.lower() + ")\n")
+        if self.lowBattery:
+            initLines.append("        (chargeteamat chargeteam0 port" + self.port0.lower() + ")\n")
         initLines.append("    )\n")
         initLines.append("\n")
 
         goalLines       = ["    (:goal (and\n"]
-        if low_battery:
+        if self.lowBattery:
             goalLines.append("        (fulltank tank0)\n")
 
         for state in self.goal:

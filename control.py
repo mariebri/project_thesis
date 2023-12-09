@@ -15,6 +15,16 @@ class Control:
         self.lookahead  = 100
         self.roa        = 8
 
+        self.T          = 2.4457
+        self.K          = -0.1371
+        self.zeta       = 1
+        self.wn         = 1
+
+        self.eintFossen = 0
+        self.psi_d      = 0
+        self.r_d        = 0
+        self.a_d        = 0
+
     def inProximity(self, wp):
         """
         Goal: Return True when the ship is within the circle of
@@ -112,3 +122,42 @@ class Control:
         u, a            = self.thrustAllocation(tau)
         eta, nu         = self.vessel.step(self.h, u, a)
         return eta, nu, tau
+    
+    def refModel3(self, xd, vd, ad, r):
+        jd = self.wn**3*(r-xd) - (2*self.zeta+1)*self.wn**2*vd - (2*self.zeta+1)*self.wn*ad
+
+        xd += self.h * vd
+        vd += self.h * ad
+        ad += self.h * jd
+
+        vMax = self.vessel.vMax
+        vd = saturate(vd, -vMax, vMax)
+        return xd, vd, ad
+    
+    def PIDpolePlacement(self, eint, ex, ev, xd, vd, ad, m, d, k, r):
+        Kp = m * self.wn**2 - k
+        Kd = m*2*self.zeta*self.wn - d
+        Ki = (self.wn / 10) * Kp
+
+        u = -Kp*ex - Kd*ev - Ki*eint
+        eint += self.h*ex
+
+        [xd, vd, ad] = self.refModel3(xd, vd, ad, r)
+        return u, eint, xd, vd, ad
+
+    def headingAutopilotFossen(self):
+        psi, r  = self.vessel.eta[2], self.vessel.nu[2]
+        epsi    = psi - self.psi_d
+        er      = r - self.r_d
+
+        m       = self.T / self.K
+        d       = 1 / self.K
+        k       = 0
+
+        [delta, self.eintFossen, self.psi_d, self.r_d, self.a_d] = \
+            self.PIDpolePlacement(self.eintFossen, epsi, er, self.psi_d, \
+                                  self.r_d, self.a_d, m, d, k, r)
+        
+        u_control = np.array([delta], float)
+
+        return u_control
