@@ -42,12 +42,20 @@ def main():
     eta_sim = planExe.eta_sim[:, :planExe.n]
     nu_sim  = planExe.nu_sim[:, :planExe.n]
     tau_sim = planExe.tau_sim[:, :planExe.n]
+    u_sim   = planExe.u_sim[:, :planExe.n]
+    u_tot   = [(u_sim[0,i] + u_sim[1,i] + u_sim[2,i]) for i in range(u_sim.shape[1])]
     U_sim   = planExe.U_sim[:planExe.n]
 
     time_range = np.arange(start=0, stop=planExe.time-h, step=h)
 
     plt.figure()
-    plt.plot(time_range, tau_sim[2,:len(time_range)])
+    plt.plot(time_range, tau_sim[0,:len(time_range)])
+
+    plt.figure()
+    plt.plot(time_range, u_sim[0,:len(time_range)])
+    plt.plot(time_range, u_sim[1,:len(time_range)])
+    plt.plot(time_range, u_sim[2,:len(time_range)])
+    plt.plot(time_range, u_tot[:len(time_range)])
 
     plt.figure()
     plt.plot(time_range, U_sim[:len(time_range)])
@@ -56,7 +64,11 @@ def main():
     world.plot()
     for i in range(len(time_range)):
         if i % math.floor(10/control.h) == 0:
-            vessel.plot(eta_sim[:,i])
+            if i >= planExe.nReplan:
+                color = 'red'
+            else:
+                color = 'blue'
+            vessel.plot(eta_sim[:,i], color=color)
     plt.show()
     
 

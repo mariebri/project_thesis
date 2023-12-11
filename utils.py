@@ -3,7 +3,6 @@ import numpy as np
 import dubins
 
 from enum import Enum
-from revolt import ReVolt
 
 PlannerType = Enum('PlannerType', ['TEMPORAL', 'GRAPHPLAN'])
 State       = Enum('State', ['DOCKED', 'DOCKING', 'UNDOCKING', 'IN_TRANSIT'])

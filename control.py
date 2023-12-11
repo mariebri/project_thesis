@@ -13,7 +13,9 @@ class Control:
 
         self.eint       = np.zeros((3,1))
         self.lookahead  = 100
-        self.roa        = 8
+        self.roaTransit = 16
+        self.roaDock    = 5
+
 
         self.T          = 2.4457
         self.K          = -0.1371
@@ -25,21 +27,30 @@ class Control:
         self.r_d        = 0
         self.a_d        = 0
 
-    def inProximity(self, wp):
+    def inProximity(self, wp, transit=True):
         """
         Goal: Return True when the ship is within the circle of
         acceptance corresponding to the desired waypoint
         """
-        if np.linalg.norm(wp - self.vessel.eta[:2]) <= self.roa:
+        if transit:
+            roa = self.roaTransit
+        else:
+            roa = self.roaDock
+        
+        if np.linalg.norm(wp - self.vessel.eta[:2]) <= roa:
             return True
         return False
 
-    def PID(self, eta_d, nu_d=np.array([0,0,0])):
+    def PID(self, eta_d, transit=True):
+        if transit:
+            nu_d = np.array([self.vessel.vMax,0,0])
+        else:
+            nu_d = np.array([0,0,0])
         eta, nu = self.vessel.eta, self.vessel.nu
         rotMat  = self.vessel.getJ(psi=eta[2])
 
-        Kp      = np.diag([1000, 1000, 10000])
-        Kd      = np.diag([1000, 1000, 15000])
+        Kp      = np.diag([100, 100, 200])
+        Kd      = np.diag([1000, 1000, 1500])
         Ki      = np.diag([10, 10, 20])
 
         eta_tilde       = eta - eta_d
@@ -49,11 +60,8 @@ class Control:
         eta_tilde_dot   = eta_tilde_dot[:,np.newaxis]
 
         int_term        = Ki @ self.eint
-        force_sat       = self.vessel.T_max
         for i, force in enumerate(int_term[:, 0]):
-            if abs(force) > force_sat[i]:
-                saturated_force = np.sign(force) * force_sat[i]
-                int_term[i, 0] = saturated_force
+            int_term[i,0] = saturate(force, self.vessel.T_min[i], self.vessel.T_max[i])
 
         tau = - rotMat.T @ (Kp @ eta_tilde + Kd @ eta_tilde_dot + int_term)
         return tau, eta_tilde
@@ -119,13 +127,17 @@ class Control:
         chi_d       = ssa(pi_p - np.arctan(Kp * y_e))
         return chi_d
     
-    def headingAutopilot(self, psi_d, wp):
+    def headingAutopilot(self, psi_d, wp, transit=True):
         eta_d           = np.array([wp[0], wp[1], psi_d])
-        tau, eta_tilde  = self.PID(eta_d)
+        tau, eta_tilde  = self.PID(eta_d, transit)
         self.eint      += self.h*eta_tilde
+
+        for i in range(len(tau)):
+            tau[i] = saturate(tau[i], -self.vessel.tau_max[i], self.vessel.tau_max[i])
+
         u, a            = self.thrustAllocation(tau)
         eta, nu         = self.vessel.step(self.h, u, a)
-        return eta, nu, tau
+        return eta, nu, tau, u
     
     def refModel3(self, xd, vd, ad, r):
         jd = self.wn**3*(r-xd) - (2*self.zeta+1)*self.wn**2*vd - (2*self.zeta+1)*self.wn*ad

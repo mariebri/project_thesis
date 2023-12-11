@@ -26,6 +26,7 @@ class PlanExecutor:
         # Simulation parameters
         self.time               = 0
         self.n                  = 0
+        self.nReplan            = N
         self.N                  = N
 
         self.aIdx               = 0
@@ -40,6 +41,7 @@ class PlanExecutor:
         self.eta_sim            = np.zeros((3,self.N))
         self.nu_sim             = np.zeros((3,self.N))
         self.tau_sim            = np.zeros((3,self.N))
+        self.u_sim              = np.zeros((3,self.N))
         self.U_sim              = np.zeros(self.N)
             
     def updateActions(self, finishedAction: Action):
@@ -122,7 +124,7 @@ class PlanExecutor:
                 self.newRoute = True
             self.updateStartedAction(a, State.IN_TRANSIT)
             portFrom, portTo    = getPortName(a.parameters[0], a.parameters[1])
-            self.executeTransit(a, portFrom, portTo, step=5)
+            self.executeTransit(a, portFrom, portTo)
             a.update(self.control.h, self.hardLimit)
 
         elif a.action == "undock":
@@ -131,7 +133,7 @@ class PlanExecutor:
                 self.newRoute = True
             self.updateStartedAction(a, State.UNDOCKING)
             port, areaTo = getPortName(a.parameters[0], state=State.UNDOCKING)
-            self.executeTransit(a, port, areaTo, step=3)
+            self.executeTransit(a, port, areaTo, step=3, transit=False)
             a.update(self.control.h, self.hardLimit)
 
         elif a.action == "dock":
@@ -140,7 +142,7 @@ class PlanExecutor:
                 self.newRoute = True
             self.updateStartedAction(a, State.DOCKING)
             areaFrom, port = getPortName(a.parameters[0], state=State.DOCKING)
-            self.executeTransit(a, areaFrom, port, step=3)
+            self.executeTransit(a, areaFrom, port, step=3, transit=False)
             a.update(self.control.h, self.hardLimit)
 
             if self.plan.scenario == 2 and areaFrom == "D" and a.isExecuted:
@@ -176,7 +178,7 @@ class PlanExecutor:
         if self.n % 50 == 0:
                 a.print()
 
-    def executeTransit(self, a: Action, portFrom, portTo, step):
+    def executeTransit(self, a, portFrom, portTo, step=5, transit=True):
         if self.newRoute:
             portFrom = self.vesselState.toArea
             self.newRoute               = False
@@ -193,7 +195,7 @@ class PlanExecutor:
         if self.eta_toArea[self.etaIdx] != '':
             self.vesselState.toArea = self.eta_toArea[self.etaIdx]
 
-        if self.control.inProximity(self.wp2):
+        if self.control.inProximity(self.wp2, transit):
             if self.etaIdx == self.etaIdxMax:
                 a.isExecuted = True
                 return
@@ -203,13 +205,14 @@ class PlanExecutor:
 
         chi_d           = self.control.LOSguidance(self.wp1, self.wp2)
         psi_d           = chi_d - self.control.vessel.getCrabAngle()
-        eta, nu, tau    = self.control.headingAutopilot(psi_d, self.wp2)
+        eta, nu, tau, u = self.control.headingAutopilot(psi_d, self.wp2, transit)
         U               = np.sqrt(nu[0]**2 + nu[1]**2)
 
         # Storing simulation parameters
         self.eta_sim[:,self.n]  = eta
         self.nu_sim[:,self.n]   = nu
         self.tau_sim[:,self.n]  = tau.reshape(3)
+        self.u_sim[:,self.n]    = u.reshape(3)
         self.U_sim[self.n]      = U
 
         # Battery level decreasing every 30 seconds:

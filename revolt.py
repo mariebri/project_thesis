@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import casadi as ca
+from utils import saturate
 
 class ReVolt:
     def __init__(self, x):
@@ -29,7 +30,7 @@ class ReVolt:
         # Thrusters
         self.lx     = [-1.12, -1.12, 1.08]
         self.ly     = [-0.15,  0.15, 0.00]
-        self.tau_max= [69, 30, 80]
+        self.tau_max= [ 41, 50, 55]
         self.T_max  = [ 25,  25,  14]
         self.T_min  = [-25, -25, -6.1]
         self.T_e    = np.array([[1, 0, 1, 0, 1, 0],
@@ -99,14 +100,7 @@ class ReVolt:
         """
         Calculates tau = B(a)*F(u)
         """
-        tau = self.getB(a) @ self.getF(u)
-
-        # Saturation
-        for i in range(len(tau)):
-            if tau[i] > self.T_max[i]:
-                tau[i] = self.T_max[i]
-            if tau[i] < self.T_min[i]:
-                tau[i] = self.T_min[i]
+        tau = self.getB(a) @ self.K @ u #self.getF(u)
         
         return tau
 
@@ -117,24 +111,15 @@ class ReVolt:
             return 0
         return np.arcsin(v/U)
 
-    def step(self, h, u, a, eta=[], nu=[], optModel=False):
-        if not optModel:
-            eta = self.eta
-            nu  = self.nu
-                  
-        tau         = self.getTau(u, a) #self.T_e @ self.K_e @ u
+    def step(self, h, u, a):                 
+        tau         = self.getTau(u, a)
 
-        eta_dot     = self.getJ(eta[2]) @ nu
-        nu_dot      = (np.linalg.solve(self.M, -(self.D + self.getC(nu)) @ nu[:,np.newaxis] + tau)).reshape(3)
+        eta_dot     = self.getJ(self.eta[2]) @ self.nu
+        nu_dot      = (np.linalg.solve(self.M, -(self.D + self.getC(self.nu)) @ self.nu[:,np.newaxis] + tau)).reshape(3)
 
-        if optModel:
-            eta     = eta + h*eta_dot
-            nu      = nu + h*nu_dot
-            return eta, nu
-        else:
-            self.eta    = eta + h*eta_dot
-            self.nu     = nu + h*nu_dot
-            return self.eta, self.nu
+        self.eta   += h*eta_dot
+        self.nu    += h*nu_dot
+        return self.eta, self.nu
         
     def plot(self, eta=[], color='blue'):
         if eta == []:
