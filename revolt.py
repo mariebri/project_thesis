@@ -39,6 +39,9 @@ class ReVolt:
         self.K      = np.diag([0.00205, 0.00205, 0.0009])
         self.K_e    = np.diag([0.00205, 0.00205, 0.00205, 0.00205, 0.0009, 0.0009])
 
+        self.u_max  = np.divide(self.T_max, np.diag(self.K))
+        self.u_min  = np.divide(self.T_min, np.diag(self.K))
+
         # Casadi matrices
         self.M_ca   = ca.vertcat(ca.horzcat(263.93, 0, 0),
                                  ca.horzcat(0, 306.44, 7.007),

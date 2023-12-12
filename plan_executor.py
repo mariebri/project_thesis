@@ -41,7 +41,7 @@ class PlanExecutor:
         self.eta_sim            = np.zeros((3,self.N))
         self.nu_sim             = np.zeros((3,self.N))
         self.tau_sim            = np.zeros((3,self.N))
-        self.u_sim              = np.zeros((3,self.N))
+        self.f_sim              = np.zeros((3,self.N))
         self.U_sim              = np.zeros(self.N)
             
     def updateActions(self, finishedAction: Action):
@@ -206,13 +206,14 @@ class PlanExecutor:
         chi_d           = self.control.LOSguidance(self.wp1, self.wp2)
         psi_d           = chi_d - self.control.vessel.getCrabAngle()
         eta, nu, tau, u = self.control.headingAutopilot(psi_d, self.wp2, transit)
+        f               = self.control.vessel.K @ u
         U               = np.sqrt(nu[0]**2 + nu[1]**2)
 
         # Storing simulation parameters
         self.eta_sim[:,self.n]  = eta
         self.nu_sim[:,self.n]   = nu
         self.tau_sim[:,self.n]  = tau.reshape(3)
-        self.u_sim[:,self.n]    = u.reshape(3)
+        self.f_sim[:,self.n]    = f.reshape(3)
         self.U_sim[self.n]      = U
 
         # Battery level decreasing every 30 seconds:

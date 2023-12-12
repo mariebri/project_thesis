@@ -42,8 +42,8 @@ def main():
     eta_sim = planExe.eta_sim[:, :planExe.n]
     nu_sim  = planExe.nu_sim[:, :planExe.n]
     tau_sim = planExe.tau_sim[:, :planExe.n]
-    u_sim   = planExe.u_sim[:, :planExe.n]
-    u_tot   = [(u_sim[0,i] + u_sim[1,i] + u_sim[2,i]) for i in range(u_sim.shape[1])]
+    f_sim   = planExe.f_sim[:, :planExe.n]
+    f_tot   = [(f_sim[0,i] + f_sim[1,i] + f_sim[2,i]) for i in range(f_sim.shape[1])]
     U_sim   = planExe.U_sim[:planExe.n]
 
     time_range = np.arange(start=0, stop=planExe.time-h, step=h)
@@ -52,10 +52,11 @@ def main():
     plt.plot(time_range, tau_sim[0,:len(time_range)])
 
     plt.figure()
-    plt.plot(time_range, u_sim[0,:len(time_range)])
-    plt.plot(time_range, u_sim[1,:len(time_range)])
-    plt.plot(time_range, u_sim[2,:len(time_range)])
-    plt.plot(time_range, u_tot[:len(time_range)])
+    plt.plot(time_range, f_sim[0,:len(time_range)], label="F1")
+    plt.plot(time_range, f_sim[1,:len(time_range)], label="F2")
+    plt.plot(time_range, f_sim[2,:len(time_range)], label="F3")
+    plt.plot(time_range, f_tot[:len(time_range)], label="Ftot")
+    plt.legend()
 
     plt.figure()
     plt.plot(time_range, U_sim[:len(time_range)])
