@@ -14,7 +14,7 @@ algorithm   = "stp-3"
 scenario    = 1
 
 h           = 0.3
-N           = 50000
+N           = 10000
 
 world       = World()
 

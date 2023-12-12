@@ -99,12 +99,23 @@ class ReVolt:
                          [float(0.0027 * abs(u[1]) * u[1])],
                          [F2]])
 
-    def getTau(self, u, a):
+    def getTau(self, f, a, useU=False):
         """
         Calculates tau = B(a)*F(u)
         """
-        tau = self.getB(a) @ self.K @ u #self.getF(u)
+        if useU:
+            tau = self.getB(a) @ self.K @ f
+        else:
+            tau = self.getB(a) @ f
         
+        return tau
+    
+    def getTau_ca(self, f, a):
+        a1, a2, a3      = a[0], a[1], a[2]
+        B_a             = ca.vertcat(ca.horzcat(    ca.cos(a1),                      ca.cos(a2),                    ca.cos(a3)),
+                                     ca.horzcat(    ca.sin(a1),                      ca.sin(a2),                    ca.sin(a3)),
+                                     ca.horzcat(-self.ly[0]*ca.cos(a1)+self.lx[0]*ca.sin(a1),   -self.ly[1]*ca.cos(a2)+self.lx[1]*ca.sin(a2), self.lx[2]*ca.sin(a3)))
+        tau             = B_a @ f
         return tau
 
     def getCrabAngle(self):
@@ -114,8 +125,8 @@ class ReVolt:
             return 0
         return np.arcsin(v/U)
 
-    def step(self, h, u, a):                 
-        tau         = self.getTau(u, a)
+    def step(self, h, f, a):                 
+        tau         = self.getTau(f, a)
 
         eta_dot     = self.getJ(self.eta[2]) @ self.nu
         nu_dot      = (np.linalg.solve(self.M, -(self.D + self.getC(self.nu)) @ self.nu[:,np.newaxis] + tau)).reshape(3)

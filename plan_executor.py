@@ -205,8 +205,7 @@ class PlanExecutor:
 
         chi_d           = self.control.LOSguidance(self.wp1, self.wp2)
         psi_d           = chi_d - self.control.vessel.getCrabAngle()
-        eta, nu, tau, u = self.control.headingAutopilot(psi_d, self.wp2, transit)
-        f               = self.control.vessel.K @ u
+        eta, nu, tau, f = self.control.headingAutopilot(psi_d, self.wp2, transit)
         U               = np.sqrt(nu[0]**2 + nu[1]**2)
 
         # Storing simulation parameters
@@ -284,6 +283,9 @@ class PlanExecutor:
                 # Check if all actions are finished
                 if len(self.remainingActions) == 0:
                     self.N = self.n
+                    return
+                
+                if self.n == self.N:
                     return
 
         except NameError:
