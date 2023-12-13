@@ -75,6 +75,9 @@ class Control:
 
         Unconstrained: u_e = inv(K_e) @ T_pseudoinv @ tau
         where u_e = [u1x, u1y, u2x, u2y, u3x, u3y]
+
+        Constrained:    J = min {tau - T}
+        subject to      tau - T(a)F = 0,    |Δf| <= |Δf_max|,   |Δa| <= |Δa_max|
         """
 
         if unconstrained:
@@ -103,13 +106,14 @@ class Control:
             f           = ca.vertcat(f1, f2, f3)
             a           = ca.vertcat(a1, a2, a3)
 
-            x           = ca.vertcat(f1, f2, f3, a1, a2, a3)
-            x0          = ca.vertcat(0, 0, 0, 0, 0, 0)
+            x           = ca.vertcat(     f1,      f2,      f3,      a1,      a2,      a3)
+            x0          = ca.vertcat(      0,       0,       0,       0,       0,       0)
             lbx         = ca.vertcat(fmin[0], fmin[1], fmin[2], amin[0], amin[1], amin[2])
             ubx         = ca.vertcat(fmax[0], fmax[1], fmax[2], amax[0], amax[1], amax[2])
 
-            func        = tau - self.vessel.getTau_ca(f, a)
-            g           = ca.vertcat(func[0], func[1], func[2], self.f[0]-f1, self.f[1]-f2, self.f[2]-f3, self.a[0]-a1, self.a[1]-a2, self.a[2]-a3)
+            func        = tau - self.vessel.getTau_ca(f, a) 
+            g           = ca.vertcat(func[0], func[1], func[2], self.f[0]-f1, self.f[1]-f2, \
+                                     self.f[2]-f3, self.a[0]-a1, self.a[1]-a2, self.a[2]-a3)
             lbg         = ca.vertcat(-0.1, -0.1, -0.1, -10, -10, -4, -ca.pi/6, -ca.pi/6, -ca.pi/36)
             ubg         = ca.vertcat( 0.1,  0.1,  0.1,  10,  10,  4,  ca.pi/6,  ca.pi/6,  ca.pi/36)
 
@@ -159,6 +163,15 @@ class Control:
         return chi_d
     
     def headingAutopilot(self, psi_d, wp, transit=True):
+        """
+        Goal: Steer the vessel in direction of desired heading.
+
+        Steps:  1. Find feedback tau through PID controller
+                2. Find thrust input from this tau
+                3. Apply thrust input to the vessel
+
+        Returns: eta, nu, tau, f for simulation purposes
+        """
         eta_d           = np.array([wp[0], wp[1], psi_d])
         tau, eta_tilde  = self.PID(eta_d, transit)
         self.eint      += self.h*eta_tilde

@@ -11,10 +11,10 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 1
+scenario    = 2
 
 h           = 0.3
-N           = 10000
+N           = 40000
 
 world       = World()
 
@@ -43,23 +43,27 @@ def main():
     nu_sim  = planExe.nu_sim[:, :planExe.n]
     tau_sim = planExe.tau_sim[:, :planExe.n]
     f_sim   = planExe.f_sim[:, :planExe.n]
-    f_tot   = [(f_sim[0,i] + f_sim[1,i] + f_sim[2,i]) for i in range(f_sim.shape[1])]
     U_sim   = planExe.U_sim[:planExe.n]
 
     time_range = np.arange(start=0, stop=planExe.time-h, step=h)
 
     plt.figure()
-    plt.plot(time_range, tau_sim[0,:len(time_range)])
+    plt.plot(time_range, tau_sim[0,:len(time_range)], label="X")
+    plt.plot(time_range, tau_sim[1,:len(time_range)], label="Y")
+    plt.plot(time_range, tau_sim[2,:len(time_range)], label="N")
+    plt.title('Tau')
+    plt.legend()
 
     plt.figure()
-    plt.plot(time_range, f_sim[0,:len(time_range)], label="F1")
-    plt.plot(time_range, f_sim[1,:len(time_range)], label="F2")
-    plt.plot(time_range, f_sim[2,:len(time_range)], label="F3")
-    plt.plot(time_range, f_tot[:len(time_range)], label="Ftot")
+    plt.plot(time_range, f_sim[0,:len(time_range)], label="F1 [N]")
+    plt.plot(time_range, f_sim[1,:len(time_range)], label="F2 [N]")
+    plt.plot(time_range, f_sim[2,:len(time_range)], label="F3 [Nm]")
+    plt.title('Control forces')
     plt.legend()
 
     plt.figure()
     plt.plot(time_range, U_sim[:len(time_range)])
+    plt.title('Vessel speed')
 
     plt.figure()
     world.plot()

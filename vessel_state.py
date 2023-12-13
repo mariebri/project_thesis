@@ -2,7 +2,7 @@ from utils import *
 
 class VesselState:
 
-    def __init__(self, state=State.DOCKED, battery=100, replan=False, scenario=1):
+    def __init__(self, state=State.DOCKED, battery=100, replan=False, scenario=1, toArea="A"):
         self.state      = state
         self.battery    = battery
         self.replan     = replan
@@ -11,7 +11,7 @@ class VesselState:
 
         self.area       = "A-port"
         self.port       = "A-port"
-        self.toArea     = "A-port"
+        self.toArea     = toArea
 
     def updateState(self, state, area):
         self.state  = state

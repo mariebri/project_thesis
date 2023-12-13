@@ -13,14 +13,14 @@ class PlanExecutor:
         self.plan               = plan
         self.init, self.goal    = self.plan.getPredicates()
         self.port0              = self.plan.getStartPos()
-        self.area0              = "A-port"
+        self.area0              = self.port0 + "-port"
 
         self.remainingActions   = copy.deepcopy(self.plan.actions)
         self.finishedActions    = []
         self.allActions         = self.finishedActions + self.remainingActions
         self.concurrentActions  = self.plan.concurrentActions
 
-        self.vesselState        = VesselState(scenario=self.plan.scenario)
+        self.vesselState        = VesselState(scenario=self.plan.scenario, toArea=self.area0)
         self.control            = control
 
         # Simulation parameters
