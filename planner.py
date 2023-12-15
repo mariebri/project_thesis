@@ -15,6 +15,7 @@ class Action:
         self.planner        = planner
         self.start          = round(float(start),1)
         self.dur            = round(float(dur),1)
+        self.durDiff        = 0.0
 
         self.runtime        = 0
         self.hasConcurrent  = False
@@ -35,6 +36,10 @@ class Action:
         self.runtime += step
         if self.runtime >= self.dur and hardLimit:
             self.isExecuted = True
+
+        if self.isExecuted and not hardLimit:
+            self.durDiff = self.runtime - self.dur
+            self.durDiff = round(self.durDiff, 1)
 
     def print(self):
         if self.action == "transit":

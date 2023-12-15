@@ -45,17 +45,34 @@ class PlanExecutor:
         self.track_err          = np.zeros((2,self.N))
             
     def updateActions(self, finishedAction: Action):
+        """
+        Remove finished action from remaining actions set and
+        append to finished actions set.
+
+        If the duration of the action differs from the original plan,
+        update start time of all upcoming actions.
+        """
+
         self.remainingActions.remove(finishedAction)
         self.finishedActions.append(finishedAction)
 
+        if finishedAction.durDiff != 0.0:
+            print(finishedAction.action, 'duration difference:', finishedAction.durDiff)
+            for a in self.remainingActions:
+                a.start += finishedAction.durDiff
+
     def updatePredStart(self, startedAction: Action):
+        """
+        Goal: Update effects that are set at start of the action
+        
+        Only used for temporal planners to update effects "at start"
+        """
+        
         if self.plan.planner == PlannerType.TEMPORAL:
-            # Only used for temporal planners
             addEffects, delEffects = startedAction.getEffects()
             addEffects = addEffects[0]
             delEffects = delEffects[0]
 
-            # Update
             effInPred = [False for i in range(len(addEffects))]
             for pred in self.init:
                 for i in range(len(addEffects)):
@@ -77,13 +94,18 @@ class PlanExecutor:
             return
 
     def updatePredEnd(self, finishedAction: Action):
+        """
+        Goal: Update effects that are set at end of action
+
+        Used for both classical and temporal planners
+        """
+        
         addEffects, delEffects = finishedAction.getEffects()
 
         if self.plan.planner == PlannerType.TEMPORAL:
             addEffects = addEffects[1]
             delEffects = delEffects[1]
 
-        # Update
         effInPred = [False for i in range(len(addEffects))]
         for pred in self.init:
             for i in range(len(addEffects)):
@@ -103,6 +125,10 @@ class PlanExecutor:
                     self.goal.remove(pred)
 
     def updateStartedAction(self, a: Action, state):
+        """
+        Goal: Update vessel state and initial predicates at start of action
+        """
+
         if a.isStarted:
             return
         
@@ -117,6 +143,9 @@ class PlanExecutor:
         a.isStarted = True
 
     def executeAction(self, a: Action):
+        """
+        Executes one step of a given action
+        """
 
         if a.action == "transit":
             self.hardLimit = False
@@ -181,6 +210,11 @@ class PlanExecutor:
                 a.print()
 
     def executeTransit(self, a, portFrom, portTo, step=5, transit=True):
+        """
+        Goal: Execute one step of transit
+
+        Finds new route if necessary, and steers vessel towards next waypoint
+        """
         if self.newRoute:
             portFrom                    = self.vesselState.toArea
             self.newRoute               = False
@@ -217,19 +251,27 @@ class PlanExecutor:
         self.track_err[:,self.n]    = track_err
 
         # Battery level decreasing every 25 seconds:
-        if self.plan.scenario == 3:
-            battery_sec = math.floor(25/self.control.h)
-            if self.n % battery_sec == 0:
-                self.vesselState.updateBattery(-1)
+        battery_sec = math.floor(25/self.control.h)
+        if self.n % battery_sec == 0:
+            self.vesselState.updateBattery(-1)
         return
 
     def executeDocked(self):
-        # Storing simulation parameters
+        """
+        Execute one step of vessel being docked.
+        Only storing simulation parameters.
+        """
+
         self.eta_sim[:,self.n]  = self.control.vessel.eta
         self.nu_sim[:,self.n]   = self.control.vessel.nu
         self.etad_sim[:,self.n] = self.control.vessel.eta
 
     def replanning(self):
+        """
+        Makes a new problem file and a new Planner instance based on vessel's current state
+        Updates parameters of the PlanExecutor instance.
+        """
+
         self.nReplan= self.n
         replanner = Replanner(self.init, self.goal, self.plan, self.vesselState.battery, \
                                   self.vesselState.lowBattery, self.vesselState.port)
@@ -246,7 +288,11 @@ class PlanExecutor:
         self.concurrentActions  = replanner.plan.concurrentActions
         self.aIdx               = 0
 
-    def simulationLoop(self):
+    def simulation(self):
+        """
+        Main simulation loop
+        """
+
         actions = self.allActions
 
         try:
@@ -292,4 +338,4 @@ class PlanExecutor:
         except NameError:
             self.vesselState.replan = True
             self.replanning()
-            self.simulationLoop()
+            self.simulation()

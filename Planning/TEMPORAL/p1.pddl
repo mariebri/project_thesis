@@ -34,7 +34,7 @@
         (= (length portd portc) 438)   ; m
         (= (length portc porte) 685)   ; m
         (= (length porte portc) 685)   ; m
-        (= (speed vessel0) 1)          ; m/s (approx 2 knots)
+        (= (speed vessel0) 1.2)        ; m/s (approx 2 knots)
     )
 
     (:goal (and

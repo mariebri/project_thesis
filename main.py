@@ -31,11 +31,10 @@ def main():
 
     # Executing the plan
     planExe = PlanExecutor(plan, control, N)
-    planExe.simulationLoop()
+    planExe.simulation()
 
     print('Executing finished ...')
-    print('n: %s \nN: %s' % (planExe.n, planExe.N))
-    print('Total time: %s' % planExe.time)
+    print('Steps n: \t%s \nTotal time: \t%s' % (planExe.n, planExe.time))
 
 
     # Simulation parameters
