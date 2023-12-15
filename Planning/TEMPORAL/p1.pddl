@@ -3,7 +3,7 @@
         vessel0 - vessel
         porta portb portc portd porte - port
         goodsae goodsbd goodscb - goods
-        tank0 - tank
+        battery0 - battery
         chargeteam0 - chargeteam
     )
 
@@ -34,14 +34,14 @@
         (= (length portd portc) 438)   ; m
         (= (length portc porte) 685)   ; m
         (= (length porte portc) 685)   ; m
-        (= (speed vessel0) 1.2)        ; m/s (approx 2 knots)
+        (= (speed vessel0) 1.4)        ; m/s
     )
 
     (:goal (and
         (goodsat goodsae porte)
         (goodsat goodsbd portd)
         (goodsat goodscb portb)
-        (fulltank tank0)
+        (fullbattery battery0)
     ))
 
     (:metric minimize (total-time))

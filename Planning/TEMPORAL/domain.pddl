@@ -4,7 +4,7 @@
         vessel
         port
         goods
-        tank
+        battery
         chargeteam
     )
 
@@ -15,7 +15,7 @@
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
-        (fulltank ?t - tank)
+        (fullbattery ?b - battery)
         (intransit ?v - vessel ?from - port)
     )
 
@@ -93,7 +93,7 @@
     )
 
     (:durative-action charging
-        :parameters (?p - port ?v - vessel ?t - tank ?c - chargeteam)
+        :parameters (?p - port ?v - vessel ?b - battery ?c - chargeteam)
         :duration (= ?duration 50)
         :condition (and
             (at start (vesselat ?v ?p))
@@ -101,7 +101,7 @@
             (at start (chargeteamat ?c ?p))
         )
         :effect (and
-            (at end (fulltank ?t))
+            (at end (fullbattery ?b))
         )
     )
 

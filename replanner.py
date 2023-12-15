@@ -62,7 +62,7 @@ class Replanner():
 
         goalLines       = ["    (:goal (and\n"]
         if self.lowBattery:
-            goalLines.append("        (fulltank tank0)\n")
+            goalLines.append("        (fullbattery battery0)\n")
 
         for state in self.goal:
             goalLines.append("        (" + state + ")\n")

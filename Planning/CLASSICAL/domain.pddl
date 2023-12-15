@@ -4,7 +4,7 @@
         vessel
         port
         goods
-        tank
+        battery
         chargeteam
     )
 
@@ -15,7 +15,7 @@
         (onboard ?g - goods ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
-        (fulltank ?t - tank)
+        (fullbattery ?b - battery)
     )
 
     (:action transit
@@ -80,14 +80,14 @@
     )
 
     (:action charging
-        :parameters (?p - port ?v - vessel ?t - tank ?c - chargeteam)
+        :parameters (?p - port ?v - vessel ?b - battery ?c - chargeteam)
         :precondition (and
             (chargeteamat ?c ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
         )
         :effect (and
-            (fulltank ?t)
+            (fullbattery ?b)
         )
     )
 )

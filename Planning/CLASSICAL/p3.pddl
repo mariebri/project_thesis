@@ -3,7 +3,7 @@
         vessel0 - vessel
         porta portb portc portd porte - port
         goodsae goodsbd - goods
-        tank0 - tank
+        battery0 - battery
         chargeteam0 - chargeteam
     )
 

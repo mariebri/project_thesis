@@ -15,7 +15,7 @@ class ReVolt:
         self.m      = 257   # kg
         self.length = 3.02  # m
         self.width  = 0.72  # m
-        self.vMax   = 1.2   # m/s, approx 2 knots
+        self.vMax   = 1.5   # m/s
 
         sl, sw      = self.length/2, self.width/2
         self.vBox   = np.array([[-sl,  sw], [-sl, -sw], [sl, -sw], [sl,  sw]]).T

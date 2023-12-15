@@ -3,7 +3,7 @@
         vessel0 - vessel
         porta portb portc portd porte - port
         goodsae goodsbd goodscb - goods
-        tank0 - tank
+        battery0 - battery
         chargeteam0 - chargeteam
     )
 
@@ -30,6 +30,6 @@
         (goodsat goodsae porte)
         (goodsat goodsbd portd)
         (goodsat goodscb portb)
-        (fulltank tank0)
+        (fullbattery battery0)
     ))
 )
