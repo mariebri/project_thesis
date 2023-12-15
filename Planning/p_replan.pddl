@@ -29,17 +29,15 @@
         (= (length portc porte) 685)
         (= (length porte portc) 685)
         (= (speed vessel0) 1)
-        (chargeteamat chargeteam0 portc)
         (onboard goodsae vessel0)
-        (onboard goodsbd vessel0)
+        (goodsat goodsbd portd)
         (vesselat vessel0 portd)
-        (isdocked vessel0)
+        (chargeteamat chargeteam0 portc)
     )
 
     (:goal (and
-        (goodsat goodsae porte)
-        (goodsat goodsbd portd)
         (fulltank tank0)
+        (goodsat goodsae porte)
     ))
 
     (:metric minimize (total-time))

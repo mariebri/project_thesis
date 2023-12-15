@@ -160,7 +160,7 @@ class Control:
 
         Kp          = 1/self.lookahead
         chi_d       = ssa(pi_p - np.arctan(Kp * y_e))
-        return chi_d
+        return chi_d, track_err
     
     def headingAutopilot(self, psi_d, wp, transit=True):
         """
@@ -179,43 +179,5 @@ class Control:
         self.f, self.a  = self.thrustAllocation(tau)
 
         eta, nu         = self.vessel.step(self.h, self.f, self.a)
-        return eta, nu, tau, self.f
+        return eta, nu, self.f
     
-    def refModel3(self, xd, vd, ad, r):
-        jd = self.wn**3*(r-xd) - (2*self.zeta+1)*self.wn**2*vd - (2*self.zeta+1)*self.wn*ad
-
-        xd += self.h * vd
-        vd += self.h * ad
-        ad += self.h * jd
-
-        vMax = self.vessel.vMax
-        vd = saturate(vd, -vMax, vMax)
-        return xd, vd, ad
-    
-    def PIDpolePlacement(self, eint, ex, ev, xd, vd, ad, m, d, k, r):
-        Kp = m * self.wn**2 - k
-        Kd = m*2*self.zeta*self.wn - d
-        Ki = (self.wn / 10) * Kp
-
-        u = -Kp*ex - Kd*ev - Ki*eint
-        eint += self.h*ex
-
-        [xd, vd, ad] = self.refModel3(xd, vd, ad, r)
-        return u, eint, xd, vd, ad
-
-    def headingAutopilotFossen(self):
-        psi, r  = self.vessel.eta[2], self.vessel.nu[2]
-        epsi    = psi - self.psi_d
-        er      = r - self.r_d
-
-        m       = self.T / self.K
-        d       = 1 / self.K
-        k       = 0
-
-        [delta, self.eintFossen, self.psi_d, self.r_d, self.a_d] = \
-            self.PIDpolePlacement(self.eintFossen, epsi, er, self.psi_d, \
-                                  self.r_d, self.a_d, m, d, k, r)
-        
-        u_control = np.array([delta], float)
-
-        return u_control

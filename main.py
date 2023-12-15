@@ -11,7 +11,7 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 2
+scenario    = 1
 
 h           = 0.3
 N           = 40000
@@ -38,20 +38,20 @@ def main():
     print('Total time: %s' % planExe.time)
 
 
-    # Simulation
-    eta_sim = planExe.eta_sim[:, :planExe.n]
-    nu_sim  = planExe.nu_sim[:, :planExe.n]
-    tau_sim = planExe.tau_sim[:, :planExe.n]
-    f_sim   = planExe.f_sim[:, :planExe.n]
-    U_sim   = planExe.U_sim[:planExe.n]
+    # Simulation parameters
+    eta_sim     = planExe.eta_sim[:, :planExe.n]
+    nu_sim      = planExe.nu_sim[:, :planExe.n]
+    f_sim       = planExe.f_sim[:, :planExe.n]
+    etad_sim    = planExe.etad_sim[:, :planExe.n]
+    track_err   = planExe.track_err[:, :planExe.n]
 
     time_range = np.arange(start=0, stop=planExe.time-h, step=h)
 
+    # Plotting
     plt.figure()
-    plt.plot(time_range, tau_sim[0,:len(time_range)], label="X")
-    plt.plot(time_range, tau_sim[1,:len(time_range)], label="Y")
-    plt.plot(time_range, tau_sim[2,:len(time_range)], label="N")
-    plt.title('Tau')
+    plt.plot(time_range, nu_sim[0,:len(time_range)], label="u")
+    plt.plot(time_range, nu_sim[1,:len(time_range)], label="v")
+    plt.title('Surge and Sway speed')
     plt.legend()
 
     plt.figure()
@@ -62,8 +62,10 @@ def main():
     plt.legend()
 
     plt.figure()
-    plt.plot(time_range, U_sim[:len(time_range)])
-    plt.title('Vessel speed')
+    plt.plot(time_range, track_err[0, :len(time_range)], label="x_e")
+    plt.plot(time_range, track_err[1, :len(time_range)], label="y_e")
+    plt.title('Cross- and Along-track errors')
+    plt.legend()
 
     plt.figure()
     world.plot()
@@ -74,6 +76,7 @@ def main():
             else:
                 color = 'blue'
             vessel.plot(eta_sim[:,i], color=color)
+            vessel.plot(etad_sim[:,i], color="yellow")
     plt.show()
     
 

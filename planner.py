@@ -126,7 +126,7 @@ class Planner:
                 os.system(cmd)
                 end = time.time()
 
-            except subprocess.TimeoutExpired as timeErr:
+            except subprocess.TimeoutExpired:
                 print("Process timeout")
 
             # Choosing the plan file with the lowest total time
@@ -196,9 +196,10 @@ class Planner:
                 ai1 = actions[i+1]
                 if ai.start == ai1.start:
                     c = ConcurrentAction(ai.start, ai, ai1)
-                    ai2 = actions[i+2]
-                    if ai.start == ai2.start:
-                        c.addAction(ai2)
+                    if i+2 < len(actions):
+                        ai2 = actions[i+2]
+                        if ai.start == ai2.start:
+                            c.addAction(ai2)
                     concurrentActions.append(c)
 
         elif self.planner == PlannerType.GRAPHPLAN:

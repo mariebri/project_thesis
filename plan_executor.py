@@ -40,9 +40,9 @@ class PlanExecutor:
 
         self.eta_sim            = np.zeros((3,self.N))
         self.nu_sim             = np.zeros((3,self.N))
-        self.tau_sim            = np.zeros((3,self.N))
         self.f_sim              = np.zeros((3,self.N))
-        self.U_sim              = np.zeros(self.N)
+        self.etad_sim           = np.zeros((3,self.N))
+        self.track_err          = np.zeros((2,self.N))
             
     def updateActions(self, finishedAction: Action):
         self.remainingActions.remove(finishedAction)
@@ -147,6 +147,8 @@ class PlanExecutor:
 
             if self.plan.scenario == 2 and areaFrom == "D" and a.isExecuted:
                 print("Oh no, charging station at port D is busy!")
+                self.updateActions(a)
+                self.updatePredEnd(a)
                 raise NameError("Replanning to find another charging station")
 
         elif a.action == "load":
@@ -180,7 +182,7 @@ class PlanExecutor:
 
     def executeTransit(self, a, portFrom, portTo, step=5, transit=True):
         if self.newRoute:
-            portFrom = self.vesselState.toArea
+            portFrom                    = self.vesselState.toArea
             self.newRoute               = False
             self.eta_d, self.eta_toArea = self.control.getOptimalEta(portFrom, portTo, step)
             self.etaIdxMax              = self.eta_d.shape[1]-2
@@ -203,21 +205,20 @@ class PlanExecutor:
             self.wp1    = self.eta_d[:2, self.etaIdx]
             self.wp2    = self.eta_d[:2, self.etaIdx+1]
 
-        chi_d           = self.control.LOSguidance(self.wp1, self.wp2)
-        psi_d           = chi_d - self.control.vessel.getCrabAngle()
-        eta, nu, tau, f = self.control.headingAutopilot(psi_d, self.wp2, transit)
-        U               = np.sqrt(nu[0]**2 + nu[1]**2)
+        chi_d, track_err    = self.control.LOSguidance(self.wp1, self.wp2)
+        psi_d               = chi_d - self.control.vessel.getCrabAngle()
+        eta, nu, f          = self.control.headingAutopilot(psi_d, self.wp2, transit)
 
         # Storing simulation parameters
-        self.eta_sim[:,self.n]  = eta
-        self.nu_sim[:,self.n]   = nu
-        self.tau_sim[:,self.n]  = tau.reshape(3)
-        self.f_sim[:,self.n]    = f.reshape(3)
-        self.U_sim[self.n]      = U
+        self.eta_sim[:,self.n]      = eta
+        self.nu_sim[:,self.n]       = nu
+        self.f_sim[:,self.n]        = f.reshape(3)
+        self.etad_sim[:,self.n]     = self.eta_d[:,self.etaIdx+1]
+        self.track_err[:,self.n]    = track_err
 
-        # Battery level decreasing every 30 seconds:
+        # Battery level decreasing every 25 seconds:
         if self.plan.scenario == 3:
-            battery_sec = math.floor(30/self.control.h)
+            battery_sec = math.floor(25/self.control.h)
             if self.n % battery_sec == 0:
                 self.vesselState.updateBattery(-1)
         return
@@ -226,8 +227,7 @@ class PlanExecutor:
         # Storing simulation parameters
         self.eta_sim[:,self.n]  = self.control.vessel.eta
         self.nu_sim[:,self.n]   = self.control.vessel.nu
-        self.tau_sim[:,self.n]  = np.zeros(3)
-        self.U_sim[self.n]      = 0
+        self.etad_sim[:,self.n] = self.control.vessel.eta
 
     def replanning(self):
         self.nReplan= self.n
@@ -238,6 +238,7 @@ class PlanExecutor:
         self.goal   = replanner.plan.goal
         self.port0  = replanner.plan.getStartPos()
         self.area0  = self.vesselState.toArea
+        self.vesselState.replan = True
         
         self.remainingActions   = copy.deepcopy(replanner.plan.actions)
         self.finishedActions    = []
