@@ -6,11 +6,11 @@ from scipy.spatial import ConvexHull
 class World:
     def __init__(self):
         # Ports
-        self.portA = np.array([888, 35, np.deg2rad(30)])
-        self.portB = np.array([767, 466, np.deg2rad(20)])
-        self.portC = np.array([353, 679, np.deg2rad(80)])
-        self.portD = np.array([39, 780, np.deg2rad(80)])
-        self.portE = np.array([470, 1020, np.deg2rad(140)])
+        self.portA = np.array([570506, 7035798, np.deg2rad(30)])
+        self.portB = np.array([570366, 7035194, np.deg2rad(20)])
+        self.portC = np.array([569877, 7034895, np.deg2rad(80)])
+        self.portD = np.array([569475, 7034730, np.deg2rad(80)])
+        self.portE = np.array([570016, 7034409, np.deg2rad(140)])
 
         # Operating Area
         self.nSets = 0
@@ -53,25 +53,25 @@ class World:
         self.addConnection('D', 'D-port', self.portD[:2], self.portD[2], np.deg2rad(-60))
         self.addConnection('E', 'E-port', self.portE[:2], self.portE[2], np.deg2rad(-70))
 
-        self.addConnection('A', 'A-Transit', np.array([906,43]), np.deg2rad(70), np.deg2rad(-120))
-        self.addConnection('B', 'B-Transit', np.array([750,456]), np.deg2rad(160), np.deg2rad(20))
-        self.addConnection('C', 'C-Transit', np.array([353,690]), np.deg2rad(90), np.deg2rad(-90))
-        self.addConnection('D', 'D-Transit', np.array([41,761]), np.deg2rad(-60), np.deg2rad(60))
-        self.addConnection('E', 'E-Transit', np.array([485,1013]), np.deg2rad(-60), np.deg2rad(120))
-        self.addConnection('A-Transit', 'B-Transit', np.array([750,421]), np.deg2rad(110), np.deg2rad(-80))
-        self.addConnection('B-Transit', 'B-Cross', np.array([670, 615]), np.deg2rad(120), np.deg2rad(-60))
-        self.addConnection('Cross', 'B-Cross', np.array([605,756]), np.deg2rad(-60), np.deg2rad(0))
-        self.addConnection('B-Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(100), np.deg2rad(-60))
-        self.addConnection('Cross', 'Cross-C1', np.array([567,752]), np.deg2rad(170), np.deg2rad(-10))
-        self.addConnection('Cross', 'E-Transit', np.array([598, 785]), np.deg2rad(120), np.deg2rad(-60))
-        self.addConnection('Cross-C1', 'Cross-C2', np.array([527,731]), np.deg2rad(-140), np.deg2rad(40))
-        self.addConnection('Cross-C2', 'C-Transit', np.array([462,701]), np.deg2rad(-160), np.deg2rad(20))
-        self.addConnection('C-Transit', 'D-Cross', np.array([310,687]), np.deg2rad(170), np.deg2rad(-10))
-        self.addConnection('D-Cross', 'D-Transit', np.array([144,704]), np.deg2rad(150), np.deg2rad(-10))
+        self.addConnection('A', 'A-Transit', np.array([570519, 7035785]), np.deg2rad(70), np.deg2rad(-120))
+        self.addConnection('B', 'B-Transit', np.array([570349, 7035203]), np.deg2rad(160), np.deg2rad(20))
+        self.addConnection('C', 'C-Transit', np.array([569878, 7034874]), np.deg2rad(90), np.deg2rad(-90))
+        self.addConnection('D', 'D-Transit', np.array([569480, 7034746]), np.deg2rad(-60), np.deg2rad(60))
+        self.addConnection('E', 'E-Transit', np.array([570032, 7034419]), np.deg2rad(-60), np.deg2rad(120))
+        self.addConnection('A-Transit', 'B-Transit',np.array([570375, 7035276]), np.deg2rad(110), np.deg2rad(-80))
+        self.addConnection('B-Transit', 'B-Cross',  np.array([570196, 7034853]), np.deg2rad(120), np.deg2rad(-60))
+        self.addConnection('Cross', 'B-Cross',      np.array([570162, 7034777]), np.deg2rad(-60), np.deg2rad(0))
+        self.addConnection('B-Cross', 'E-Transit',  np.array([570173, 7034740]), np.deg2rad(100), np.deg2rad(-60))
+        self.addConnection('Cross', 'Cross-C1',     np.array([570116, 7034792]), np.deg2rad(170), np.deg2rad(-10))
+        self.addConnection('Cross', 'E-Transit',    np.array([570173, 7034740]), np.deg2rad(120), np.deg2rad(-60))
+        self.addConnection('Cross-C1', 'Cross-C2',  np.array([569932, 7034863]), np.deg2rad(-140), np.deg2rad(40))
+        self.addConnection('Cross-C2', 'C-Transit', np.array([570012, 7034856]), np.deg2rad(-160), np.deg2rad(20))
+        self.addConnection('C-Transit', 'D-Cross',  np.array([569744, 7034876]), np.deg2rad(170), np.deg2rad(-10))
+        self.addConnection('D-Cross', 'D-Transit',  np.array([569617, 7034845]), np.deg2rad(150), np.deg2rad(-10))
 
     def plotMap(self):
         img = np.asarray(Image.open('./Map/Map_flight_wo_name.png'))
-        plt.imshow(img)
+        plt.imshow(img, extent=[569463, 570692, 7034366, 7035859])
         plt.text(self.portA[0], self.portA[1], "A", color="white", verticalalignment="bottom")
         plt.text(self.portB[0], self.portB[1], "B", color="white", verticalalignment="top")
         plt.text(self.portC[0], self.portC[1], "C", color="white", verticalalignment="bottom")

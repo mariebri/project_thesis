@@ -70,7 +70,7 @@ def main():
     plt.grid(), plt.legend()
 
     plt.figure()
-    world.plot()
+    world.plot(showInd=True)
     for i in range(len(time_range)):
         if i % math.floor(10/control.h) == 0:
             if i >= planExe.nReplan:
