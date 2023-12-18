@@ -19,17 +19,6 @@ class Control:
         self.f          = np.zeros((3,1))
         self.a          = np.zeros((3,1))
 
-
-        self.T          = 2.4457
-        self.K          = -0.1371
-        self.zeta       = 1
-        self.wn         = 1
-
-        self.eintFossen = 0
-        self.psi_d      = 0
-        self.r_d        = 0
-        self.a_d        = 0
-
     def inProximity(self, wp, transit=True):
         """
         Goal: Return True when the ship is within the circle of
@@ -98,7 +87,7 @@ class Control:
 
         else:
             fmin, fmax  = self.vessel.T_min, self.vessel.T_max
-            amin, amax  = [0, 0, 0], [ca.inf, ca.inf, ca.inf]
+            amin, amax  = [0, 0, -270 * ca.pi/180], [ca.inf, ca.inf, 270 * ca.pi/180]
 
             f1, f2, f3  = ca.SX.sym('f1'), ca.SX.sym('f2'), ca.SX.sym('f3')
             a1, a2, a3  = ca.SX.sym('a1'), ca.SX.sym('a2'), ca.SX.sym('a3')
