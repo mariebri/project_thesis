@@ -162,7 +162,7 @@ class PlanExecutor:
                 self.newRoute = True
             self.updateStartedAction(a, State.UNDOCKING)
             port, areaTo = getPortName(a.parameters[0], state=State.UNDOCKING)
-            self.executeTransit(a, port, areaTo, step=3, transit=False)
+            self.executeTransit(a, port, areaTo, step=5, transit=False)
             a.update(self.control.h, self.hardLimit)
 
         elif a.action == "dock":
@@ -171,7 +171,7 @@ class PlanExecutor:
                 self.newRoute = True
             self.updateStartedAction(a, State.DOCKING)
             areaFrom, port = getPortName(a.parameters[0], state=State.DOCKING)
-            self.executeTransit(a, areaFrom, port, step=3, transit=False)
+            self.executeTransit(a, areaFrom, port, step=5, transit=False)
             a.update(self.control.h, self.hardLimit)
 
             if self.plan.scenario == 2 and areaFrom == "D" and a.isExecuted:
@@ -209,7 +209,7 @@ class PlanExecutor:
         if self.n % 50 == 0:
                 a.print()
 
-    def executeTransit(self, a, portFrom, portTo, step=5, transit=True):
+    def executeTransit(self, a, portFrom, portTo, step=10, transit=True):
         """
         Goal: Execute one step of transit
 

@@ -2,15 +2,12 @@
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
-        goodsae goodsbd goodscb - goods
+        goodsae goodsbd - goods
         battery0 - battery
         chargeteam0 - chargeteam
     )
 
     (:init
-        (chargeteamat chargeteam0 portd)
-        (goodsat goodsbd portb)
-        (goodsat goodscb portc)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -31,15 +28,17 @@
         (= (length portd portc) 438)
         (= (length portc porte) 685)
         (= (length porte portc) 685)
-        (= (speed vessel0) 1)
+        (= (speed vessel0) 1.4)
+        (chargeteamat chargeteam0 portc)
         (onboard goodsae vessel0)
-        (vesselat vessel0 porta)
+        (onboard goodsbd vessel0)
+        (vesselat vessel0 portd)
+        (isdocked vessel0)
     )
 
     (:goal (and
         (goodsat goodsae porte)
         (goodsat goodsbd portd)
-        (goodsat goodscb portb)
         (fullbattery battery0)
     ))
 

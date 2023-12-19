@@ -11,7 +11,7 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 1
+scenario    = 2
 
 h           = 0.3
 N           = 40000
@@ -44,14 +44,16 @@ def main():
     etad_sim    = planExe.etad_sim[:, :planExe.n]
     track_err   = planExe.track_err[:, :planExe.n]
 
-    time_range = np.arange(start=0, stop=planExe.time-h, step=h)
+    time_range  = np.arange(start=0, stop=planExe.time-h, step=h)
+    U_tot       = [(nu_sim[0,i] + nu_sim[1,i]) for i in range(len(time_range))]
 
     # Plotting
     plt.figure()
-    plt.plot(time_range, nu_sim[0,:len(time_range)], label="u")
-    plt.plot(time_range, nu_sim[1,:len(time_range)], label="v")
-    plt.title('Surge and Sway speed')
-    plt.ylabel('Spped [m/s]'), plt.xlabel('Time [sec]')
+    plt.plot(time_range, nu_sim[0,:len(time_range)], label="Surge speed u")
+    plt.plot(time_range, nu_sim[1,:len(time_range)], label="Sway speed v")
+    plt.plot(time_range, U_tot[:len(time_range)], label="Total speed U")
+    plt.title('Vessel speed')
+    plt.ylabel('Speed [m/s]'), plt.xlabel('Time [sec]')
     plt.grid(), plt.legend()
 
     plt.figure()
@@ -63,10 +65,10 @@ def main():
     plt.grid(), plt.legend()
 
     plt.figure()
-    plt.plot(time_range, track_err[0, :len(time_range)], label="x_e")
-    plt.plot(time_range, track_err[1, :len(time_range)], label="y_e")
-    plt.title('Cross- and Along-track errors')
-    plt.ylabel('Error [rad]'), plt.xlabel('Time [sec]')
+    plt.plot(time_range, track_err[0, :len(time_range)], label="Along-track error x_e")
+    plt.plot(time_range, track_err[1, :len(time_range)], label="Cross-track error y_e")
+    plt.title('Along-track and Cross-track errors')
+    plt.ylabel('Error [m]'), plt.xlabel('Time [sec]')
     plt.grid(), plt.legend()
 
     plt.figure()
@@ -76,9 +78,19 @@ def main():
             if i >= planExe.nReplan:
                 color = 'red'
             else:
-                color = 'blue'
+                color = 'green'
             vessel.plot(eta_sim[:,i], color=color)
-            vessel.plot(etad_sim[:,i], color="yellow")
+        vessel.plot(etad_sim[:,i], color="yellow")
+    
+    
+    etad = np.zeros((2,len(time_range)))
+    j = 0
+    for i in range(etad_sim.shape[1]):
+        if etad_sim[0,i] >= 1:
+            etad[:,j] = etad_sim[:2,i]
+            j += 1
+        #plt.plot(etad[0,:j], etad[1,:j], color="yellow")
+    
     plt.show()
     
 

@@ -13,8 +13,8 @@ class Control:
 
         self.eint       = np.zeros((3,1))
         self.lookahead  = 100
-        self.roaTransit = 16
-        self.roaDock    = 5
+        self.roaTransit = 20
+        self.roaDock    = 16
 
         self.f          = np.zeros((3,1))
         self.a          = np.zeros((3,1))
@@ -117,7 +117,7 @@ class Control:
             a_sol       = np.array([x_sol[3], x_sol[4], x_sol[5]])
             return f_sol, a_sol
 
-    def getOptimalEta(self, portFrom, portTo, step=5):
+    def getOptimalEta(self, portFrom, portTo, step=10):
         path        = self.world.findPath(portFrom, portTo)
         path.insert(0, portFrom)
         eta0        = self.vessel.eta
@@ -142,7 +142,7 @@ class Control:
         x1, y1      = wp1[0], wp1[1]
         x2, y2      = wp2[0], wp2[1]
 
-        pi_p        = np.arctan2(y2-y1, x2-x1)
+        pi_p        = ssa(np.arctan2(y2-y1, x2-x1))
         rotMat      = np.array([[np.cos(pi_p), -np.sin(pi_p)], [np.sin(pi_p), np.cos(pi_p)]])
         track_err   = rotMat.T @ (self.vessel.eta[:2] - wp1)
         y_e         = track_err[1]
