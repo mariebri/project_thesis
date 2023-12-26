@@ -10,7 +10,6 @@
         (vesselAt ?v - vessel ?p - port)
         (goodsAt ?g - goods ?p - port)
         (onboard ?g - goods ?v - vessel)
-        (isDocked ?v - vessel)
     )
 
     (:functions
@@ -18,7 +17,7 @@
         (speed ?v - vessel)
     )
 
-    (:durative-action transit
+    (:durative-action move
         :parameters (?from ?to - port ?v - vessel)
         :duration (= ?duration (/ (length ?from ?to) (speed ?v)))
         :condition (and
@@ -36,7 +35,6 @@
         :condition (and
         	(at start (goodsAt ?g ?p))
         	(over all (vesselAt ?v ?p))
-            (over all (isDocked ?v))
         )
         :effect (and 
         	(at end (not (goodsAt ?g ?p)))
@@ -50,7 +48,6 @@
         :condition (and
         	(at start (onboard ?g ?v))
         	(over all (vesselAt ?v ?p))
-            (over all (isDocked ?v))
         )
         :effect (and
         	(at end (not (onboard ?g ?v)))
