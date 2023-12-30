@@ -1,17 +1,16 @@
 (define (problem simple) (:domain simple)
     (:objects
         vessel0 - vessel
-        porta portb - port
-        goodsab - goods
+        portA portB - port
+        cont0 - cont
     )
 
     (:init
-        (vesselat vessel0 porta)
-        (goodsat goodsab porta)
+        (vesselAt vessel0 portA)
+        (contAt cont0 portA)
     )
 
     (:goal (and
-        (vesselat vessel0 portb)
-        (goodsat goodsab portb)
+        (contAt cont0 portB)
     ))
 )
