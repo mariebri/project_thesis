@@ -3,40 +3,39 @@
     (:types
         vessel
         port
-        goods
+        cont
     )
 
     (:predicates
-        (vesselat ?v - vessel ?p - port)
-        (goodsat ?g - goods ?p - port)
-        (onboard ?g - goods ?v - vessel)
-        (path ?x - port ?y - port)
+        (vesselAt ?v - vessel ?p - port)
+        (contAt ?c - cont ?p - port)
+        (onboard ?c - cont ?v - vessel)
     )
 
     (:action transit
-        :parameters (?from - port ?to - port ?v - vessel)
-        :precondition (and (path ?from ?to) (vesselat ?v ?from))
+        :parameters (?from ?to - port ?v - vessel)
+        :precondition (and (vesselAt ?v ?from))
         :effect (and
-            (vesselat ?v ?to)
-            (not (vesselat ?v ?from))
+            (vesselAt ?v ?to)
+            (not (vesselAt ?v ?from))
         )
     )
 
     (:action load
-        :parameters (?p - port ?g - goods ?v - vessel)
-        :precondition (and (goodsat ?g ?p) (vesselat ?v ?p))
+        :parameters (?p - port ?c - cont ?v - vessel)
+        :precondition (and (contAt ?c ?p) (vesselAt ?v ?p))
         :effect (and
-            (not (goodsat ?g ?p))
-            (onboard ?g ?v)
+            (not (contAt ?c ?p))
+            (onboard ?c ?v)
         )
     )
 
     (:action unload
-        :parameters (?p - port ?g - goods ?v - vessel)
-        :precondition (and (onboard ?g ?v) (vesselat ?v ?p))
+        :parameters (?p - port ?c - cont ?v - vessel)
+        :precondition (and (onboard ?c ?v) (vesselAt ?v ?p))
         :effect (and
-            (not (onboard ?g ?v))
-            (goodsat ?g ?p)
+            (not (onboard ?c ?v))
+            (contAt ?c ?p)
         )
     )
 )
