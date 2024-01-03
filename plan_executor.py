@@ -21,7 +21,7 @@ class PlanExecutor:
         self.concurrentActions  = self.plan.concurrentActions
 
         self.vesselState        = VesselState(scenario=self.plan.scenario, toArea=self.area0)
-        self.controller            = controller
+        self.controller         = controller
 
         # Simulation parameters
         self.time               = 0
