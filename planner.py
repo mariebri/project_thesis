@@ -126,7 +126,7 @@ class Planner:
                 cmd0 = "cd"
                 cmd1 = ". temporal-planning-test/bin/activate"
                 cmd2 = "cd temporal-planning-test/temporal-planning/"
-                cmd3 = "python2.7 bin/plan.py " + self.algorithm + " " + self.domain + " " + self.problem
+                cmd3 = "python2.7 bin/plan.py --time 1 " + self.algorithm + " " + self.domain + " " + self.problem
                 cmd  = cmd0 + "; " + cmd1 + "; " + cmd2 + "; " + cmd3
                 os.system(cmd)
                 end = time.time()
