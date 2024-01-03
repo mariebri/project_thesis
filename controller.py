@@ -5,7 +5,7 @@ from world import World
 from revolt import ReVolt
 from utils import *
 
-class Control:
+class Controller:
     def __init__(self, h, vessel: ReVolt, world: World):
         self.h      = h
         self.vessel = vessel

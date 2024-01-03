@@ -2,7 +2,7 @@ import copy
 import math
 import matplotlib.pyplot as plt
 
-from control import Control
+from controller import Control
 from planner import Action, ConcurrentAction, Planner
 from replanner import Replanner
 from vessel_state import VesselState
