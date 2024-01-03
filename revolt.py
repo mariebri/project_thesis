@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import casadi as ca
-from utils import saturate
+from utils import ssa
 
 class ReVolt:
     def __init__(self, x):
@@ -133,6 +133,7 @@ class ReVolt:
 
         self.eta   += h*eta_dot
         self.nu    += h*nu_dot
+        self.eta[2] = ssa(self.eta[2])
         return self.eta, self.nu
         
     def plot(self, eta=[], color='blue'):

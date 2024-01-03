@@ -240,7 +240,7 @@ class PlanExecutor:
             self.wp2    = self.eta_d[:2, self.etaIdx+1]
 
         chi_d, track_err    = self.controller.LOSguidance(self.wp1, self.wp2)
-        psi_d               = chi_d - self.controller.vessel.getCrabAngle()
+        psi_d               = ssa(chi_d - self.controller.vessel.getCrabAngle())
         eta, nu, f          = self.controller.headingAutopilot(psi_d, self.wp2, transit)
 
         # Storing simulation parameters
