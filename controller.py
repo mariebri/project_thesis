@@ -136,6 +136,9 @@ class Controller:
                 eta_toArea[0] = path[i+1]
             eta0 = eta_opt[:,-1]
 
+        if 'eta_opt' not in locals():
+            return eta0.reshape((3,1)), portTo
+
         return eta_opt, eta_toArea
     
     def LOSguidance(self, wp1, wp2):

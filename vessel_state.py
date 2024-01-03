@@ -16,7 +16,9 @@ class VesselState:
     def updateState(self, state, area):
         self.state  = state
         self.area   = area
-        self.port, _= getPortName(area, state=state)
+        port, _     = getPortName(area, state=state)
+        if port != "":
+            self.port = port
 
     def updateBattery(self, change):
         if self.battery + change > 100:
