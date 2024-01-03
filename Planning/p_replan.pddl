@@ -27,18 +27,17 @@
         (= (length path_dc) 438)
         (= (length path_ce) 685)
         (= (length path_ec) 685)
-        (= (speed vessel0) 1.4)
-        (at charger0 portc)
+        (= (speed vessel0) 1.3)
         (onboard cont0 vessel0)
         (onboard cont1 vessel0)
-        (at vessel0 portd)
-        (isdocked vessel0)
+        (at vessel0 portc)
+        (at charger0 portd)
     )
 
     (:goal (and
+        (fullbattery battery0)
         (at cont0 porte)
         (at cont1 portd)
-        (fullbattery battery0)
     ))
 
     (:metric minimize (total-time))

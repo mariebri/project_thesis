@@ -31,7 +31,7 @@
         (= (length path_dc) 438)   ; m
         (= (length path_ce) 685)   ; m
         (= (length path_ec) 685)   ; m
-        (= (speed vessel0) 1.4)        ; m/s
+        (= (speed vessel0) 1.2)    ; m/s
     )
 
     (:goal (and
