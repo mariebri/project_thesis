@@ -2,14 +2,14 @@ import copy
 import math
 import matplotlib.pyplot as plt
 
-from control import Control
+from controller import Controller
 from planner import Action, ConcurrentAction, Planner
 from replanner import Replanner
 from vessel_state import VesselState
 from utils import *
 
 class PlanExecutor:
-    def __init__(self, plan: Planner, control: Control, N):
+    def __init__(self, plan: Planner, controller: Controller, N):
         self.plan               = plan
         self.init, self.goal    = self.plan.getPredicates()
         self.port0              = self.plan.getStartPos()
@@ -21,7 +21,7 @@ class PlanExecutor:
         self.concurrentActions  = self.plan.concurrentActions
 
         self.vesselState        = VesselState(scenario=self.plan.scenario, toArea=self.area0)
-        self.control            = control
+        self.controller            = controller
 
         # Simulation parameters
         self.time               = 0
@@ -154,7 +154,7 @@ class PlanExecutor:
             self.updateStartedAction(a, State.IN_TRANSIT)
             portFrom, portTo    = getPortName(a.parameters[0], a.parameters[1])
             self.executeTransit(a, portFrom, portTo)
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
         elif a.action == "undock":
             self.hardLimit = False
@@ -163,7 +163,7 @@ class PlanExecutor:
             self.updateStartedAction(a, State.UNDOCKING)
             port, areaTo = getPortName(a.parameters[0], state=State.UNDOCKING)
             self.executeTransit(a, port, areaTo, step=5, transit=False)
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
         elif a.action == "dock":
             self.hardLimit = False
@@ -172,7 +172,7 @@ class PlanExecutor:
             self.updateStartedAction(a, State.DOCKING)
             areaFrom, port = getPortName(a.parameters[0], state=State.DOCKING)
             self.executeTransit(a, areaFrom, port, step=5, transit=False)
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
             if self.plan.scenario == 2 and areaFrom == "D" and a.isExecuted:
                 print("Oh no, charging station at port D is busy!")
@@ -184,21 +184,21 @@ class PlanExecutor:
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
         elif a.action == "unload":
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
         elif a.action == "charging":
             self.updateStartedAction(a, State.DOCKED)
             self.executeDocked()
             self.hardLimit = True
-            a.update(self.control.h, self.hardLimit)
+            a.update(self.controller.h, self.hardLimit)
 
-            battery_sec = math.floor(10/self.control.h)
+            battery_sec = math.floor(10/self.controller.h)
             if self.n % battery_sec == 0:
                 self.vesselState.updateBattery(20)
                 print('Charging: %s' % str(self.vesselState.battery))
@@ -218,7 +218,7 @@ class PlanExecutor:
         if self.newRoute:
             portFrom                    = self.vesselState.toArea
             self.newRoute               = False
-            self.eta_d, self.eta_toArea = self.control.getOptimalEta(portFrom, portTo, step)
+            self.eta_d, self.eta_toArea = self.controller.getOptimalEta(portFrom, portTo, step)
             self.etaIdxMax              = self.eta_d.shape[1]-2
 
             if self.etaIdxMax <= 0:
@@ -231,7 +231,7 @@ class PlanExecutor:
         if self.eta_toArea[self.etaIdx] != '':
             self.vesselState.toArea = self.eta_toArea[self.etaIdx]
 
-        if self.control.inProximity(self.wp2, transit):
+        if self.controller.inProximity(self.wp2, transit):
             if self.etaIdx == self.etaIdxMax:
                 a.isExecuted = True
                 return
@@ -239,9 +239,9 @@ class PlanExecutor:
             self.wp1    = self.eta_d[:2, self.etaIdx]
             self.wp2    = self.eta_d[:2, self.etaIdx+1]
 
-        chi_d, track_err    = self.control.LOSguidance(self.wp1, self.wp2)
-        psi_d               = chi_d - self.control.vessel.getCrabAngle()
-        eta, nu, f          = self.control.headingAutopilot(psi_d, self.wp2, transit)
+        chi_d, track_err    = self.controller.LOSguidance(self.wp1, self.wp2)
+        psi_d               = chi_d - self.controller.vessel.getCrabAngle()
+        eta, nu, f          = self.controller.headingAutopilot(psi_d, self.wp2, transit)
 
         # Storing simulation parameters
         self.eta_sim[:,self.n]      = eta
@@ -251,7 +251,7 @@ class PlanExecutor:
         self.track_err[:,self.n]    = track_err
 
         # Battery level decreasing every 25 seconds:
-        battery_sec = math.floor(25/self.control.h)
+        battery_sec = math.floor(25/self.controller.h)
         if self.n % battery_sec == 0:
             self.vesselState.updateBattery(-1)
         return
@@ -262,9 +262,9 @@ class PlanExecutor:
         Only storing simulation parameters.
         """
 
-        self.eta_sim[:,self.n]  = self.control.vessel.eta
-        self.nu_sim[:,self.n]   = self.control.vessel.nu
-        self.etad_sim[:,self.n] = self.control.vessel.eta
+        self.eta_sim[:,self.n]  = self.controller.vessel.eta
+        self.nu_sim[:,self.n]   = self.controller.vessel.nu
+        self.etad_sim[:,self.n] = self.controller.vessel.eta
 
     def replanning(self):
         """
@@ -325,7 +325,7 @@ class PlanExecutor:
 
                 # Update n and time
                 self.n     += 1
-                self.time  += self.control.h
+                self.time  += self.controller.h
 
                 # Check if all actions are finished
                 if len(self.remainingActions) == 0:

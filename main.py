@@ -1,7 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 
-from control import Control
+from controller import Controller
 from revolt import ReVolt
 from planner import *
 from plan_executor import PlanExecutor
@@ -27,10 +27,10 @@ def main():
     eta0    = world.getPort(port0)
     x0      = np.concatenate((eta0, np.zeros(3)))
     vessel  = ReVolt(x=x0)
-    control = Control(h, vessel, world)
+    controller = Controller(h, vessel, world)
 
     # Executing the plan
-    planExe = PlanExecutor(plan, control, N)
+    planExe = PlanExecutor(plan, controller, N)
     planExe.simulation()
 
     print('Executing finished ...')
@@ -74,7 +74,7 @@ def main():
     plt.figure()
     world.plot()
     for i in range(len(time_range)):
-        if i % math.floor(10/control.h) == 0:
+        if i % math.floor(10/controller.h) == 0:
             if i >= planExe.nReplan:
                 color = 'red'
             else:
