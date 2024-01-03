@@ -251,7 +251,7 @@ class PlanExecutor:
         self.track_err[:,self.n]    = track_err
 
         # Battery level decreasing every 25 seconds:
-        battery_sec = math.floor(25/self.controller.h)
+        battery_sec = math.floor(30/self.controller.h)
         if self.n % battery_sec == 0:
             self.vesselState.updateBattery(-1)
         return

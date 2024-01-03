@@ -11,7 +11,7 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 3
+scenario    = 2
 
 h           = 0.3
 N           = 40000
@@ -86,7 +86,8 @@ def main():
                 color = 'red'
             else:
                 color = 'green'
-            vessel.plot(eta_sim[:,i], color=color)
+            if np.linalg.norm(eta_sim[:,i]) >= 1000:
+                vessel.plot(eta_sim[:,i], color=color)
         #vessel.plot(etad_sim[:,i], color="yellow")
     
     

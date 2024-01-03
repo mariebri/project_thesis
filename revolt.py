@@ -133,7 +133,6 @@ class ReVolt:
 
         self.eta   += h*eta_dot
         self.nu    += h*nu_dot
-        self.eta[2] = ssa(self.eta[2])
         return self.eta, self.nu
         
     def plot(self, eta=[], color='blue'):
