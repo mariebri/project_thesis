@@ -3,16 +3,16 @@
     (:types
         vessel
         port
-        goods
+        cont
         battery
-        chargeteam
+        charger
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
-        (goodsat ?g - goods ?p - port)
-        (chargeteamat ?c - chargeteam ?p - port)
-        (onboard ?g - goods ?v - vessel)
+        (contat ?c - cont ?p - port)
+        (chargerat ?ch - charger ?p - port)
+        (onboard ?c - cont ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
         (fullbattery ?b - battery)
@@ -65,40 +65,40 @@
     )
 
     (:durative-action load
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :duration (= ?duration 60)
         :condition (and
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
-            (at start (goodsat ?g ?p))
+            (at start (contat ?c ?p))
         )
         :effect (and
-            (at start (not (goodsat ?g ?p)))
-            (at end (onboard ?g ?v))
+            (at start (not (contat ?c ?p)))
+            (at end (onboard ?c ?v))
         )
     )
 
     (:durative-action unload
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :duration (= ?duration 50)
         :condition (and
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
-            (at start (onboard ?g ?v))
+            (at start (onboard ?c ?v))
         )
         :effect (and
-            (at start (not (onboard ?g ?v)))
-            (at end (goodsat ?g ?p))
+            (at start (not (onboard ?c ?v)))
+            (at end (contat ?c ?p))
         )
     )
 
     (:durative-action charging
-        :parameters (?p - port ?v - vessel ?b - battery ?c - chargeteam)
+        :parameters (?p - port ?v - vessel ?b - battery ?ch - charger)
         :duration (= ?duration 50)
         :condition (and
             (at start (vesselat ?v ?p))
             (at start (isdocked ?v))
-            (at start (chargeteamat ?c ?p))
+            (at start (chargerat ?ch ?p))
         )
         :effect (and
             (at end (fullbattery ?b))

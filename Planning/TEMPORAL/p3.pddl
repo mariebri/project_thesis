@@ -2,16 +2,16 @@
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
-        goodsae goodsbd - goods
+        cont0 cont1 - cont
         battery0 - battery
-        chargeteam0 - chargeteam
+        charger0 - charger
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
-        (goodsat goodsae porta)
-        (goodsat goodsbd portb)
+        (contat cont0 porta)
+        (contat cont1 portb)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -36,8 +36,8 @@
     )
 
     (:goal (and
-        (goodsat goodsae porte)
-        (goodsat goodsbd portd)
+        (contat cont0 porte)
+        (contat cont1 portd)
     ))
 
     (:metric minimize (total-time))

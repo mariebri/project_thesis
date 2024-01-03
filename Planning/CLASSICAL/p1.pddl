@@ -2,18 +2,18 @@
     (:objects
         vessel0 - vessel
         porta portb portc portd porte - port
-        goodsae goodsbd goodscb - goods
+        cont0 cont1 cont2 - cont
         battery0 - battery
-        chargeteam0 - chargeteam
+        charger0 - charger
     )
 
     (:init
         (vesselat vessel0 porta)
         (isdocked vessel0)
-        (chargeteamat chargeteam0 portd)
-        (goodsat goodsae porta)
-        (goodsat goodsbd portb)
-        (goodsat goodscb portc)
+        (chargerat charger0 portd)
+        (contat cont0 porta)
+        (contat cont1 portb)
+        (contat cont2 portc)
         (path porta portb)
         (path portb porta)
         (path portb portc)
@@ -27,9 +27,9 @@
     )
 
     (:goal (and
-        (goodsat goodsae porte)
-        (goodsat goodsbd portd)
-        (goodsat goodscb portb)
+        (contat cont0 porte)
+        (contat cont1 portd)
+        (contat cont2 portb)
         (fullbattery battery0)
     ))
 )

@@ -3,13 +3,13 @@
     (:types
         vessel
         port
-        goods
+        cont
     )
 
     (:predicates
         (vesselAt ?v - vessel ?p - port)
-        (goodsAt ?g - goods ?p - port)
-        (onboard ?g - goods ?v - vessel)
+        (contAt ?c - cont ?p - port)
+        (onboard ?c - cont ?v - vessel)
     )
 
     (:functions
@@ -30,28 +30,28 @@
     )
 
     (:durative-action load
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :duration (= ?duration 60)
         :condition (and
-        	(at start (goodsAt ?g ?p))
+        	(at start (contAt ?c ?p))
         	(over all (vesselAt ?v ?p))
         )
         :effect (and 
-        	(at end (not (goodsAt ?g ?p)))
-        	(at end (onboard ?g ?v))
+        	(at end (not (contAt ?c ?p)))
+        	(at end (onboard ?c ?v))
         )
     )
 
     (:durative-action unload
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :duration (= ?duration 50)
         :condition (and
-        	(at start (onboard ?g ?v))
+        	(at start (onboard ?c ?v))
         	(over all (vesselAt ?v ?p))
         )
         :effect (and
-        	(at end (not (onboard ?g ?v)))
-        	(at end (goodsAt ?g ?p))
+        	(at end (not (onboard ?c ?v)))
+        	(at end (contAt ?c ?p))
         )
     )
 )

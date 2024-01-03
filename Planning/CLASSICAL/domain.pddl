@@ -3,16 +3,16 @@
     (:types
         vessel
         port
-        goods
+        cont
         battery
-        chargeteam
+        charger
     )
 
     (:predicates
         (vesselat ?v - vessel ?p - port)
-        (goodsat ?g - goods ?p - port)
-        (chargeteamat ?c - chargeteam ?p - port)
-        (onboard ?g - goods ?v - vessel)
+        (contat ?c - cont ?p - port)
+        (chargerat ?ch - charger ?p - port)
+        (onboard ?c - cont ?v - vessel)
         (path ?x - port ?y - port)
         (isdocked ?v - vessel)
         (fullbattery ?b - battery)
@@ -54,35 +54,35 @@
     )
 
     (:action load
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :precondition (and
-            (goodsat ?g ?p)
+            (contat ?c ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
         )
         :effect (and
-            (not (goodsat ?g ?p))
-            (onboard ?g ?v)
+            (not (contat ?c ?p))
+            (onboard ?c ?v)
         )
     )
 
     (:action unload
-        :parameters (?p - port ?g - goods ?v - vessel)
+        :parameters (?p - port ?c - cont ?v - vessel)
         :precondition (and
-            (onboard ?g ?v)
+            (onboard ?c ?v)
             (vesselat ?v ?p)
             (isdocked ?v)
         )
         :effect (and
-            (not (onboard ?g ?v))
-            (goodsat ?g ?p)
+            (not (onboard ?c ?v))
+            (contat ?c ?p)
         )
     )
 
     (:action charging
-        :parameters (?p - port ?v - vessel ?b - battery ?c - chargeteam)
+        :parameters (?p - port ?v - vessel ?b - battery ?ch - charger)
         :precondition (and
-            (chargeteamat ?c ?p)
+            (chargerat ?ch ?p)
             (vesselat ?v ?p)
             (isdocked ?v)
         )
