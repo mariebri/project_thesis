@@ -11,7 +11,7 @@ from world import World
 ### Global parameters
 plannerType = PlannerType.TEMPORAL
 algorithm   = "stp-3"
-scenario    = 2
+scenario    = 3
 
 h           = 0.3
 N           = 40000
@@ -72,6 +72,13 @@ def main():
     plt.grid(), plt.legend()
 
     plt.figure()
+    plt.plot(time_range, eta_sim[2, :len(time_range)], label="Simulated heading")
+    plt.plot(time_range, etad_sim[2, :len(time_range)], label="Desired heading")
+    plt.title("Desired vs Actual heading")
+    plt.ylabel('Heading [rad]'), plt.xlabel('Time [sec]')
+    plt.grid(), plt.legend()
+
+    plt.figure()
     world.plot()
     for i in range(len(time_range)):
         if i % math.floor(10/controller.h) == 0:
@@ -80,7 +87,7 @@ def main():
             else:
                 color = 'green'
             vessel.plot(eta_sim[:,i], color=color)
-        vessel.plot(etad_sim[:,i], color="yellow")
+        #vessel.plot(etad_sim[:,i], color="yellow")
     
     
     etad = np.zeros((2,len(time_range)))
