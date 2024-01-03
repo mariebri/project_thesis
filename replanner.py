@@ -49,14 +49,14 @@ class Replanner():
             elif "intransit" in state:
                 # If a vessel is intransit, we simplify and say that
                 # the vessel is at the port it was transitting from
-                state = state.replace("intransit", "vesselat")
+                state = state.replace("intransit", "at")
                 initLines.append("        (" + state + ")\n")
-            elif self.scenario == 2 and "chargerat charger0 portd" in state:
+            elif self.scenario == 2 and "at charger0 portd" in state:
                 ...
             else:
                 initLines.append("        (" + state + ")\n")
         if self.lowBattery:
-            initLines.append("        (chargerat charger0 port" + self.port0.lower() + ")\n")
+            initLines.append("        (at charger0 port" + self.port0.lower() + ")\n")
         initLines.append("    )\n")
         initLines.append("\n")
 

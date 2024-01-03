@@ -1,33 +1,30 @@
 (define (domain graphplan)
     (:requirements :typing)
     (:types
-        vessel
-        port
-        cont
+        vessel cont charger - object
         battery
-        charger
+        port
+        path
     )
 
     (:predicates
-        (vesselat ?v - vessel ?p - port)
-        (contat ?c - cont ?p - port)
-        (chargerat ?ch - charger ?p - port)
+        (at ?o - object ?p - port)
         (onboard ?c - cont ?v - vessel)
-        (path ?x - port ?y - port)
+        (connected ?p - path ?x ?y - port)
         (isdocked ?v - vessel)
         (fullbattery ?b - battery)
     )
 
     (:action transit
-        :parameters (?from - port ?to - port ?v - vessel)
+        :parameters (?from ?to - port ?v - vessel ?p - path)
         :precondition (and
-            (path ?from ?to)
-            (vesselat ?v ?from)
+            (connected ?p ?from ?to)
+            (at ?v ?from)
             (not (isdocked ?v))
         )
         :effect (and
-            (vesselat ?v ?to)
-            (not (vesselat ?v ?from))
+            (at ?v ?to)
+            (not (at ?v ?from))
         )
     )
 
@@ -35,7 +32,7 @@
         :parameters (?p - port ?v - vessel)
         :precondition (and
             (not (isdocked ?v))
-            (vesselat ?v ?p)
+            (at ?v ?p)
         )
         :effect (and
             (isdocked ?v)
@@ -46,7 +43,7 @@
         :parameters (?p - port ?v - vessel)
         :precondition (and
             (isdocked ?v)
-            (vesselat ?v ?p)
+            (at ?v ?p)
         )
         :effect (and
             (not (isdocked ?v))
@@ -56,12 +53,12 @@
     (:action load
         :parameters (?p - port ?c - cont ?v - vessel)
         :precondition (and
-            (contat ?c ?p)
-            (vesselat ?v ?p)
+            (at ?c ?p)
+            (at ?v ?p)
             (isdocked ?v)
         )
         :effect (and
-            (not (contat ?c ?p))
+            (not (at ?c ?p))
             (onboard ?c ?v)
         )
     )
@@ -70,20 +67,20 @@
         :parameters (?p - port ?c - cont ?v - vessel)
         :precondition (and
             (onboard ?c ?v)
-            (vesselat ?v ?p)
+            (at ?v ?p)
             (isdocked ?v)
         )
         :effect (and
             (not (onboard ?c ?v))
-            (contat ?c ?p)
+            (at ?c ?p)
         )
     )
 
     (:action charging
         :parameters (?p - port ?v - vessel ?b - battery ?ch - charger)
         :precondition (and
-            (chargerat ?ch ?p)
-            (vesselat ?v ?p)
+            (at ?ch ?p)
+            (at ?v ?p)
             (isdocked ?v)
         )
         :effect (and

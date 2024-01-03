@@ -1,43 +1,42 @@
 (define (problem temporal) (:domain temporal)
     (:objects
         vessel0 - vessel
-        porta portb portc portd porte - port
         cont0 cont1 - cont
-        battery0 - battery
         charger0 - charger
+        battery0 - battery
+        porta portb portc portd porte - port
+        path_ab path_bc path_cb path_be path_eb path_cd path_dc path_ce path_ec - path
     )
 
     (:init
-        (vesselat vessel0 porta)
+        (at vessel0 porta)
         (isdocked vessel0)
-        (contat cont0 porta)
-        (contat cont1 portb)
-        (path porta portb)
-        (path portb porta)
-        (path portb portc)
-        (path portc portb)
-        (path portb porte)
-        (path porte portb)
-        (path portc portd)
-        (path portd portc)
-        (path portc porte)
-        (path porte portc)
-        (= (length porta portb) 587)   ; m
-        (= (length portb porta) 587)   ; m
-        (= (length portb portc) 758)   ; m
-        (= (length portc portb) 758)   ; m
-        (= (length portb porte) 831)   ; m
-        (= (length porte portb) 831)   ; m
-        (= (length portc portd) 438)   ; m
-        (= (length portd portc) 438)   ; m
-        (= (length portc porte) 685)   ; m
-        (= (length porte portc) 685)   ; m
+        (at cont0 porta)
+        (at cont1 portb)
+        (connected path_ab porta portb)
+        (connected path_bc portb portc)
+        (connected path_cb portc portb)
+        (connected path_be portb porte)
+        (connected path_eb porte portb)
+        (connected path_cd portc portd)
+        (connected path_dc portd portc)
+        (connected path_ce portc porte)
+        (connected path_ec porte portc)
+        (= (length path_ab) 587)   ; m
+        (= (length path_bc) 758)   ; m
+        (= (length path_cb) 758)   ; m
+        (= (length path_be) 831)   ; m
+        (= (length path_eb) 831)   ; m
+        (= (length path_cd) 438)   ; m
+        (= (length path_dc) 438)   ; m
+        (= (length path_ce) 685)   ; m
+        (= (length path_ec) 685)   ; m
         (= (speed vessel0) 1.4)        ; m/s
     )
 
     (:goal (and
-        (contat cont0 porte)
-        (contat cont1 portd)
+        (at cont0 porte)
+        (at cont1 portd)
     ))
 
     (:metric minimize (total-time))

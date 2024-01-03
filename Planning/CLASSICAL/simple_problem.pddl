@@ -6,11 +6,11 @@
     )
 
     (:init
-        (vesselAt vessel0 portA)
-        (contAt cont0 portA)
+        (at vessel0 portA)
+        (at cont0 portA)
     )
 
     (:goal (and
-        (contAt cont0 portB)
+        (at cont0 portB)
     ))
 )

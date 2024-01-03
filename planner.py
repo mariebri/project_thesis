@@ -336,7 +336,8 @@ class Planner:
     
     def getStartPos(self):
         for pred in self.init:
-            if "vesselat" in pred:
-                pred = pred.split()
-                port, _ = getPortName(pred[2])
-                return port
+            if "at" in pred:
+                if "vessel0" in pred:
+                    pred = pred.split()
+                    port, _ = getPortName(pred[2])
+                    return port

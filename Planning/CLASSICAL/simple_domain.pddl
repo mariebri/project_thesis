@@ -1,41 +1,39 @@
 (define (domain simple)
     (:requirements :typing :strips)
     (:types
-        vessel
+        vessel cont - object
         port
-        cont
     )
 
     (:predicates
-        (vesselAt ?v - vessel ?p - port)
-        (contAt ?c - cont ?p - port)
+        (at ?o - object ?p - port)
         (onboard ?c - cont ?v - vessel)
     )
 
     (:action transit
         :parameters (?from ?to - port ?v - vessel)
-        :precondition (and (vesselAt ?v ?from))
+        :precondition (and (at ?v ?from))
         :effect (and
-            (vesselAt ?v ?to)
-            (not (vesselAt ?v ?from))
+            (at ?v ?to)
+            (not (at ?v ?from))
         )
     )
 
     (:action load
         :parameters (?p - port ?c - cont ?v - vessel)
-        :precondition (and (contAt ?c ?p) (vesselAt ?v ?p))
+        :precondition (and (at ?c ?p) (at ?v ?p))
         :effect (and
-            (not (contAt ?c ?p))
+            (not (at ?c ?p))
             (onboard ?c ?v)
         )
     )
 
     (:action unload
         :parameters (?p - port ?c - cont ?v - vessel)
-        :precondition (and (onboard ?c ?v) (vesselAt ?v ?p))
+        :precondition (and (onboard ?c ?v) (at ?v ?p))
         :effect (and
             (not (onboard ?c ?v))
-            (contAt ?c ?p)
+            (at ?c ?p)
         )
     )
 )

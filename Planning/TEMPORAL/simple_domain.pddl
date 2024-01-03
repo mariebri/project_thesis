@@ -1,14 +1,12 @@
 (define (domain simple_temporal)
 (:requirements :typing :durative-actions)
     (:types
-        vessel
+        vessel cont - object
         port
-        cont
     )
 
     (:predicates
-        (vesselAt ?v - vessel ?p - port)
-        (contAt ?c - cont ?p - port)
+        (at ?o - object ?p - port)
         (onboard ?c - cont ?v - vessel)
     )
 
@@ -21,11 +19,11 @@
         :parameters (?from ?to - port ?v - vessel)
         :duration (= ?duration (/ (length ?from ?to) (speed ?v)))
         :condition (and
-        	(at start (vesselAt ?v ?from))
+        	(at start (at ?v ?from))
         )
         :effect (and
-        	(at end (vesselAt ?v ?to))
-        	(at start (not (vesselAt ?v ?from)))
+        	(at end (at ?v ?to))
+        	(at start (not (at ?v ?from)))
         )
     )
 
@@ -33,11 +31,11 @@
         :parameters (?p - port ?c - cont ?v - vessel)
         :duration (= ?duration 60)
         :condition (and
-        	(at start (contAt ?c ?p))
-        	(over all (vesselAt ?v ?p))
+        	(at start (at ?c ?p))
+        	(over all (at ?v ?p))
         )
         :effect (and 
-        	(at end (not (contAt ?c ?p)))
+        	(at end (not (at ?c ?p)))
         	(at end (onboard ?c ?v))
         )
     )
@@ -47,11 +45,11 @@
         :duration (= ?duration 50)
         :condition (and
         	(at start (onboard ?c ?v))
-        	(over all (vesselAt ?v ?p))
+        	(over all (at ?v ?p))
         )
         :effect (and
         	(at end (not (onboard ?c ?v)))
-        	(at end (contAt ?c ?p))
+        	(at end (at ?c ?p))
         )
     )
 )

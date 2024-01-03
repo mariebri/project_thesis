@@ -1,35 +1,35 @@
 (define (problem graphplan) (:domain graphplan)
     (:objects
         vessel0 - vessel
-        porta portb portc portd porte - port
         cont0 cont1 cont2 - cont
-        battery0 - battery
         charger0 - charger
+        battery0 - battery
+        porta portb portc portd porte - port
+        path_ab path_bc path_cb path_be path_eb path_cd path_dc path_ce path_ec - path
     )
 
     (:init
-        (vesselat vessel0 porta)
+        (at vessel0 porta)
         (isdocked vessel0)
-        (chargerat charger0 portd)
-        (contat cont0 porta)
-        (contat cont1 portb)
-        (contat cont2 portc)
-        (path porta portb)
-        (path portb porta)
-        (path portb portc)
-        (path portc portb)
-        (path portb porte)
-        (path porte portb)
-        (path portc portd)
-        (path portd portc)
-        (path portc porte)
-        (path porte portc)
+        (at charger0 portd)
+        (at cont0 porta)
+        (at cont1 portb)
+        (at cont2 portc)
+        (connected path_ab porta portb)
+        (connected path_bc portb portc)
+        (connected path_cb portc portb)
+        (connected path_be portb porte)
+        (connected path_eb porte portb)
+        (connected path_cd portc portd)
+        (connected path_dc portd portc)
+        (connected path_ce portc porte)
+        (connected path_ec porte portc)
     )
 
     (:goal (and
-        (contat cont0 porte)
-        (contat cont1 portd)
-        (contat cont2 portb)
+        (at cont0 porte)
+        (at cont1 portd)
+        (at cont2 portb)
         (fullbattery battery0)
     ))
 )
